@@ -1,0 +1,61 @@
+name: animate-preview
+version: '0.0.0'
+github: jxv/animate-preview
+license: BSD3
+category: Game
+synopsis: .
+description: .
+maintainer: Joe Vargas
+copyright: 2018 Joe Vargas
+data-files:
+- resource/Retroscape.ttf
+extra-source-files:
+- package.yaml
+- README.md
+- stack.yaml
+ghc-options: -Wall
+default-extensions:
+- DuplicateRecordFields
+- FlexibleContexts
+- FlexibleInstances
+- GeneralizedNewtypeDeriving
+- LambdaCase
+- NamedFieldPuns
+- ScopedTypeVariables
+- OverloadedStrings
+library:
+  dependencies:
+    - base >=4.7 && <5
+    - aeson
+    - animate
+    - bytestring
+    - containers
+    - optparse-applicative
+    - optparse-generic
+    - key-state
+    - linear
+    - lens
+    - mtl
+    - safe
+    - safe-exceptions
+    - sdl2
+    - sdl2-image
+    - sdl2-mixer
+    - sdl2-ttf
+    - sdl2-gfx
+    - StateVar
+    - text
+    - text-conversions
+    - random
+  source-dirs: library
+executables:
+  animate-preview:
+    dependencies:
+    - base >=4.7 && <5
+    - animate-preview
+    ghc-options:
+    - -rtsopts
+    - -threaded
+    - -with-rtsopts=-N
+    main: Main.hs
+    source-dirs: executable

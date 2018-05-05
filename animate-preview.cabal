@@ -1,0 +1,94 @@
+-- This file has been generated from package.yaml by hpack version 0.20.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: a14299a0b77ff41842fcab7667329a3d47e11560cf9f0072a5277c8f6457abb2
+
+name:           animate-preview
+version:        0.0.0
+synopsis:       .
+description:    .
+category:       Game
+homepage:       https://github.com/jxv/animate-preview#readme
+bug-reports:    https://github.com/jxv/animate-preview/issues
+maintainer:     Joe Vargas
+copyright:      2018 Joe Vargas
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+cabal-version:  >= 1.10
+
+extra-source-files:
+    package.yaml
+    README.md
+    stack.yaml
+
+data-files:
+    resource/Retroscape.ttf
+
+source-repository head
+  type: git
+  location: https://github.com/jxv/animate-preview
+
+library
+  hs-source-dirs:
+      library
+  default-extensions: DuplicateRecordFields FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving LambdaCase NamedFieldPuns ScopedTypeVariables OverloadedStrings
+  ghc-options: -Wall
+  build-depends:
+      StateVar
+    , aeson
+    , animate
+    , base >=4.7 && <5
+    , bytestring
+    , containers
+    , key-state
+    , lens
+    , linear
+    , mtl
+    , optparse-applicative
+    , optparse-generic
+    , random
+    , safe
+    , safe-exceptions
+    , sdl2
+    , sdl2-gfx
+    , sdl2-image
+    , sdl2-mixer
+    , sdl2-ttf
+    , text
+    , text-conversions
+  exposed-modules:
+      Animate.Preview
+      Animate.Preview.Config
+      Animate.Preview.Effect.Clock
+      Animate.Preview.Effect.Logger
+      Animate.Preview.Effect.Renderer
+      Animate.Preview.Engine.Dino
+      Animate.Preview.Engine.Frame
+      Animate.Preview.Engine.Input
+      Animate.Preview.Engine.Title
+      Animate.Preview.Engine.Types
+      Animate.Preview.Manager.Input
+      Animate.Preview.Resource
+      Animate.Preview.Runner
+      Animate.Preview.Scene.Title
+      Animate.Preview.State
+      Animate.Preview.Wrapper.SDLInput
+      Animate.Preview.Wrapper.SDLRenderer
+  other-modules:
+      Paths_animate_preview
+  default-language: Haskell2010
+
+executable animate-preview
+  main-is: Main.hs
+  hs-source-dirs:
+      executable
+  default-extensions: DuplicateRecordFields FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving LambdaCase NamedFieldPuns ScopedTypeVariables OverloadedStrings
+  ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
+  build-depends:
+      animate-preview
+    , base >=4.7 && <5
+  other-modules:
+      Paths_animate_preview
+  default-language: Haskell2010
