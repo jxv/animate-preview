@@ -8,6 +8,8 @@ import SDL.Vect
 import Control.Monad.Reader
 import Control.Monad.IO.Class (MonadIO(..))
 import Data.Maybe (fromMaybe)
+import Data.StateVar (($=))
+import Foreign.C.Types (CFloat(..))
 
 import Animate.Preview.Config
 import Animate.Preview.Resource
@@ -51,15 +53,15 @@ class Monad m => Renderer m where
   default getDinoAnimations :: (SDLRenderer m, R m) => m (Animations DinoKey)
   getDinoAnimations = getSpriteAnimations (rDinoSprites . cResources)
 
-  drawDino :: Maybe Color -> DrawSprite DinoKey m
-  default drawDino :: (SDLRenderer m, R m, MonadIO m) => Maybe Color -> DrawSprite DinoKey m
+  drawDino :: Maybe Color -> Float -> DrawSprite DinoKey m
+  default drawDino :: (SDLRenderer m, R m, MonadIO m) => Maybe Color -> Float -> DrawSprite DinoKey m
   drawDino = drawSprite (rDinoSprites . cResources)
 
   drawCrosshair :: (Int, Int) -> Color -> m ()
   default drawCrosshair :: (MonadIO m, R m) => (Int, Int) -> Color -> m ()
   drawCrosshair (x,y) color = do
     ren <- asks cRenderer
-    let radius = 8
+    let radius = 3
     let diameter = fromIntegral $ radius * 2
     liftIO $ do
       let color' = fromColor color
@@ -80,21 +82,28 @@ drawTextureSprite getTex (x,y) = do
     Nothing
     (Just $ SDL.Rectangle (SDL.P $ SDL.V2 (fromIntegral x) (fromIntegral y)) dim)
 
-drawSprite :: (SDLRenderer m, R m, MonadIO m) => (Config -> Animate.SpriteSheet key SDL.Texture Seconds) -> Maybe Color -> Animate.SpriteClip key -> (Int, Int) -> m ()
-drawSprite ss outline clip (x,y) = do
+drawSprite :: (SDLRenderer m, R m, MonadIO m) => (Config -> Animate.SpriteSheet key SDL.Texture Seconds) -> Maybe Color -> Float -> Animate.SpriteClip key -> (Int, Int) -> m ()
+drawSprite ss outline scalar' clip (x,y) = do
+  let scalar = pure (CFloat scalar')
   renderer <- asks cRenderer
   sheet <- asks (Animate.ssImage . ss)
+  let scaleDown n = fmap round $ (fmap fromIntegral n) / scalar
+  let scaleUp n = fmap round $ (fmap fromIntegral n) * scalar
   let clip'@(SDL.Rectangle _ dim) = rectFromClip clip
   let offset = offsetFromClip clip
-  let loc = (+) <$> offset <*> V2 (fromIntegral x) (fromIntegral y)
+  let loc = (+) <$> offset <*> (scaleDown $ V2 x y)
   case outline of
     Nothing -> return ()
-    Just outline' -> liftIO $ Gfx.rectangle renderer loc (loc + dim) (fromColor outline')
+    Just outline' -> liftIO $ Gfx.rectangle renderer (scaleUp loc) (scaleUp $ loc + dim) (fromColor outline')
+  -- set scale for sprite
+  liftIO $ SDL.rendererScale renderer $= scalar
   drawTexture
     renderer
     sheet
     (Just clip')
     (Just $ SDL.Rectangle (SDL.P loc) dim)
+  -- reset scale from sprite
+  liftIO $ SDL.rendererScale renderer $= (V2 1 1)
 
 getSpriteAnimations :: (MonadReader Config m) => (Config -> Animate.SpriteSheet key SDL.Texture Seconds) -> m (Animations key)
 getSpriteAnimations ss = asks (Animate.ssAnimations . ss)

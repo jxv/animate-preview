@@ -5,8 +5,8 @@ import Linear
 
 data Input = Input
   { iSpace :: KeyState Int
-  , iUp :: KeyState Int
-  , iDown :: KeyState Int
+  , iScaleUp :: KeyState Int
+  , iScaleDown :: KeyState Int
   , iEscape :: KeyState Int
   , iReload :: KeyState Int
   , iOrigin :: KeyState Int

@@ -8,7 +8,6 @@ import Control.Monad.State (MonadState(..), modify, gets)
 import KeyState
 import Linear
 
-import Animate.Preview.Accel
 import Animate.Preview.Animation
 import Animate.Preview.Config
 import Animate.Preview.Renderer
@@ -19,6 +18,7 @@ import Animate.Preview.State
 import Animate.Preview.ManagerInput
 import Animate.Preview.Color
 import Animate.Preview.Logger
+import Animate.Preview.Scalar
 
 class Monad m => Scene m where
   sceneStep :: m ()
@@ -27,6 +27,7 @@ class Monad m => Scene m where
     toggleVisuals
     updateOrigin
     updateSpeed
+    updateScale
     updateAnimation
     drawScene
 
@@ -35,22 +36,33 @@ updateAnimation = do
   dinoAnimations <- getDinoAnimations
   dinoPos <- gets vDinoPos
   accel <- gets vAccel
-  let accelScalar = accelAsSecondScalar accel
+  let accelScalar = scalarToSeconds accel
   let dinoPos' = Animate.stepPosition dinoAnimations dinoPos (frameDeltaSeconds * (Seconds accelScalar))
   modify $ \v -> v { vDinoPos = dinoPos' }
 
-updateSpeed :: (S m, HasInput m, Logger m) => m ()
+updateSpeed :: (S m, HasInput m) => m ()
 updateSpeed = do
   input <- getInput
-  let slower = isPressed (iSlower input)
-  let faster = isPressed (iFaster input)
-  let change accel
-        | faster && not slower = incrementAccel accel
-        | slower && not faster = decrementAccel accel
-        | otherwise = accel
+  let up = isPressed (iFaster input)
+  let down = isPressed (iSlower input)
+  let change s
+        | up && not down = incrementScalar 8 s
+        | down && not up = decrementScalar 9 s
+        | otherwise = s
   modify $ \v -> v { vAccel = change (vAccel v) }
 
-updateOrigin :: (R m, S m, HasInput m, Logger m) => m ()
+updateScale :: (S m, HasInput m) => m ()
+updateScale = do
+  input <- getInput
+  let up = isPressed (iScaleUp input)
+  let down = isPressed (iScaleDown input)
+  let change s
+        | up && not down = incrementScalar 80 s
+        | down && not up = decrementScalar 9 s
+        | otherwise = s
+  modify $ \v -> v { vScale = change (vScale v) }
+
+updateOrigin :: (R m, S m, HasInput m) => m ()
 updateOrigin = do
   input <- getInput
   -- Recenter origin
@@ -81,9 +93,9 @@ drawScene = do
   outline <- gets vOutline
   dinoAnimations <- getDinoAnimations
   let dinoLoc = Animate.currentLocation dinoAnimations dinoPos
-
-  drawDino outline dinoLoc (x, y)
-
+  scale <- gets vScale
+  let scalar = scalarToSpriteScale scale
+  drawDino outline scalar dinoLoc (x, y)
   case origin of
     Nothing -> return ()
     Just origin' -> drawCrosshair (x,y) origin'

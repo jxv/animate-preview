@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 18aeee453a97cfad17163274ddb3930ef9c634ec8e15b898532ab4ef1d8f3202
+-- hash: 5d623439c8c7907455c6e719fb6274d316866f148ca70a42e8a0377b9f77bbb4
 
 name:           animate-preview
 version:        0.0.0
@@ -60,7 +60,6 @@ library
     , text-conversions
   exposed-modules:
       Animate.Preview
-      Animate.Preview.Accel
       Animate.Preview.Animation
       Animate.Preview.Clock
       Animate.Preview.Color
@@ -73,6 +72,7 @@ library
       Animate.Preview.Renderer
       Animate.Preview.Resource
       Animate.Preview.Runner
+      Animate.Preview.Scalar
       Animate.Preview.Scene
       Animate.Preview.SDLInput
       Animate.Preview.SDLRenderer
