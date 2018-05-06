@@ -9,6 +9,8 @@ module Animate.Preview
 import qualified SDL
 import qualified SDL.Mixer as Mixer
 import qualified SDL.Font as Font
+import qualified Animate
+import Control.Applicative ((<|>))
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
 import Control.Monad.State (MonadState, StateT, evalStateT)
@@ -16,7 +18,9 @@ import Control.Exception.Safe (MonadThrow, MonadCatch)
 import Data.Maybe (fromMaybe)
 import Options.Generic
 import SDL.Vect
+import Safe (readMay)
 
+import Animate.Preview.Animation
 import Animate.Preview.Config
 import Animate.Preview.Clock
 import Animate.Preview.Logger
@@ -29,7 +33,7 @@ import Animate.Preview.Runner
 import Animate.Preview.Scene
 import Animate.Preview.State
 
-data Sample = Sample
+data Options = Options
   { json :: String  <?> "JSON file path with sprite data"
   , spritesheet :: (Maybe String) <?> "Force sprite sheet path"
   , width :: (Maybe Int) <?> "Window width (Minimum is 100 pixels)"
@@ -38,7 +42,7 @@ data Sample = Sample
   , alpha :: (Maybe Int) <?> "Force alpha transparency on sprite sheet"
   } deriving (Show, Generic)
 
-instance ParseRecord Sample
+instance ParseRecord Options
 
 main :: IO ()
 main = do
@@ -46,17 +50,32 @@ main = do
   let windowWidth = max 100 $ fromMaybe 640 (unHelpful (width options))
   let windowHeight = max 100 $ fromMaybe 480 (unHelpful (height options))
   let windowSize =  V2 windowWidth windowHeight
+  let windowCenter = div <$> windowSize <*> 2
+
+  let settings = Settings
+        { sJSON = unHelpful $ json options
+        , sSpritesheet = unHelpful $ spritesheet options
+        , sScale = fromMaybe 1 (unHelpful $ scale options)
+        , sAlpha = Nothing <|> (fromIntegral <$> (unHelpful $ alpha options))
+        , sCenter = windowCenter
+        }
+
   SDL.initialize [SDL.InitVideo, SDL.InitAudio]
   Font.initialize
   Mixer.openAudio Mixer.defaultAudio 256
   window <- SDL.createWindow "Animate Preview" SDL.defaultWindow { SDL.windowInitialSize = fromIntegral <$> windowSize }
   renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
   resources <- loadResources renderer
+
+--  ss <- Animate.readSpriteSheetInfoJSON "resource/dino.json" :: IO (Animate.SpriteSheetInfo Int Seconds)
+--  print ss
+
   let cfg = Config
         { cWindow = window
         , cRenderer = renderer
         , cResources = resources
-        , cWinSize = windowSize }
+        , cWinSize = windowSize
+        , cSettings = settings }
   runAnimatePreview cfg initVars mainLoop
   SDL.destroyWindow window
   freeResources resources

@@ -8,8 +8,12 @@ data Input = Input
   , iDown :: KeyState Int
   , iEscape :: KeyState Int
   , iReload :: KeyState Int
+  , iOrigin :: KeyState Int
+  , iOutline :: KeyState Int
   , iQuit :: Bool
   } deriving (Show, Eq)
 
 initInput :: Input
-initInput = Input initKeyState initKeyState initKeyState initKeyState initKeyState False
+initInput = Input a a a a a a a False
+  where
+    a = initKeyState

@@ -25,12 +25,14 @@ class Monad m => HasInput m where
   getInput = gets vInput
 
 stepControl :: [SDL.EventPayload] -> Input -> Input
-stepControl events Input{iSpace,iUp,iDown,iEscape,iReload} = Input
-  { iSpace = next 1 [SDL.KeycodeSpace] iSpace
-  , iUp = next 1 [SDL.KeycodeUp, SDL.KeycodeK] iUp
-  , iDown = next 1 [SDL.KeycodeDown, SDL.KeycodeL] iDown
-  , iEscape = next 1 [SDL.KeycodeEscape] iEscape
-  , iReload = next 1 [SDL.KeycodeR] iReload
+stepControl events i = Input
+  { iSpace = next 1 [SDL.KeycodeSpace] (iSpace i)
+  , iUp = next 1 [SDL.KeycodeUp, SDL.KeycodeK] (iUp i)
+  , iDown = next 1 [SDL.KeycodeDown, SDL.KeycodeL] (iDown i)
+  , iEscape = next 1 [SDL.KeycodeEscape] (iEscape i)
+  , iReload = next 1 [SDL.KeycodeR] (iReload i)
+  , iOrigin = next 1 [SDL.KeycodeT] (iOrigin i)
+  , iOutline = next 1 [SDL.KeycodeO] (iOutline i)
   , iQuit = elem SDL.QuitEvent events
   }
   where

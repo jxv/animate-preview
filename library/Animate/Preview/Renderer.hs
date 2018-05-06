@@ -7,6 +7,7 @@ import Foreign.C.Types
 import SDL.Vect
 import Control.Monad.Reader
 import Control.Monad.IO.Class (MonadIO(..))
+import Data.Maybe (fromMaybe)
 
 import Animate.Preview.Config
 import Animate.Preview.Resource
@@ -50,9 +51,19 @@ class Monad m => Renderer m where
   default getDinoAnimations :: (SDLRenderer m, R m) => m (Animations DinoKey)
   getDinoAnimations = getSpriteAnimations (rDinoSprites . cResources)
 
-  drawDino :: DrawSprite DinoKey m
-  default drawDino :: (SDLRenderer m, R m) => DrawSprite DinoKey m
+  drawDino :: Bool -> DrawSprite DinoKey m
+  default drawDino :: (SDLRenderer m, R m, MonadIO m) => Bool -> DrawSprite DinoKey m
   drawDino = drawSprite (rDinoSprites . cResources)
+
+  drawCrosshair :: (Int, Int) -> m ()
+  default drawCrosshair :: (MonadIO m, R m) => (Int, Int) -> m ()
+  drawCrosshair (x,y) = do
+    ren <- asks cRenderer
+    let radius = 8
+    let diameter = fromIntegral $ radius * 2
+    liftIO $ do
+      Gfx.horizontalLine ren (fromIntegral <$> V2 (x - radius) y) diameter (V4 0xff 0x00 0x00 0xff)
+      Gfx.verticalLine ren (fromIntegral <$> V2 x (y - radius)) diameter (V4 0xff 0x00 0x00 0xff)
 
 ----
 
@@ -68,16 +79,20 @@ drawTextureSprite getTex (x,y) = do
     Nothing
     (Just $ SDL.Rectangle (SDL.P $ SDL.V2 (fromIntegral x) (fromIntegral y)) dim)
 
-drawSprite :: (SDLRenderer m, R m) => (Config -> Animate.SpriteSheet key SDL.Texture Seconds) -> Animate.SpriteClip key -> (Int, Int) -> m ()
-drawSprite ss clip (x,y) = do
+drawSprite :: (SDLRenderer m, R m, MonadIO m) => (Config -> Animate.SpriteSheet key SDL.Texture Seconds) -> Bool -> Animate.SpriteClip key -> (Int, Int) -> m ()
+drawSprite ss outline clip (x,y) = do
   renderer <- asks cRenderer
   sheet <- asks (Animate.ssImage . ss)
   let clip'@(SDL.Rectangle _ dim) = rectFromClip clip
+  let offset = offsetFromClip clip
+  let loc = (+) <$> offset <*> V2 (fromIntegral x) (fromIntegral y)
+  when outline $
+    liftIO $ Gfx.rectangle renderer loc (loc + dim) (V4 0x00 0xff 0x00 0xff)
   drawTexture
     renderer
     sheet
     (Just clip')
-    (Just $ SDL.Rectangle (SDL.P $ SDL.V2 (fromIntegral x) (fromIntegral y)) dim)
+    (Just $ SDL.Rectangle (SDL.P loc) dim)
 
 getSpriteAnimations :: (MonadReader Config m) => (Config -> Animate.SpriteSheet key SDL.Texture Seconds) -> m (Animations key)
 getSpriteAnimations ss = asks (Animate.ssAnimations . ss)
@@ -86,3 +101,8 @@ rectFromClip :: Animate.SpriteClip key -> SDL.Rectangle CInt
 rectFromClip Animate.SpriteClip{scX,scY,scW,scH} = SDL.Rectangle (SDL.P (V2 (num scX) (num scY))) (V2 (num scW) (num scH))
   where
     num = fromIntegral
+
+offsetFromClip :: Animate.SpriteClip key -> V2 CInt
+offsetFromClip Animate.SpriteClip{scOffset} = fromMaybe
+  (V2 0 0)
+  ((\(x,y) -> fromIntegral <$> V2 (-x) (-y)) <$> scOffset)

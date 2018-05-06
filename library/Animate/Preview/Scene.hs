@@ -3,9 +3,10 @@ module Animate.Preview.Scene where
 import qualified Animate
 import Control.Lens
 import Control.Monad (when)
-import Control.Monad.Reader (MonadReader(..))
+import Control.Monad.Reader (MonadReader(..), asks)
 import Control.Monad.State (MonadState(..), modify, gets)
 import KeyState
+import Linear
 
 import Animate.Preview.Config
 import Animate.Preview.Renderer
@@ -32,7 +33,11 @@ updateScene = do
 
 drawScene :: (R m, S m, Renderer m, HasInput m) => m ()
 drawScene = do
+  V2 x y <- asks (sCenter . cSettings)
   dinoPos <- gets vDinoPos
   dinoAnimations <- getDinoAnimations
   let dinoLoc = Animate.currentLocation dinoAnimations dinoPos
-  drawDino dinoLoc (0, 0)
+  let outline = True
+  let crosshair = True
+  drawDino outline dinoLoc (x, y)
+  when crosshair $ drawCrosshair (x, y)
