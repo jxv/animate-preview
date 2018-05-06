@@ -34,11 +34,16 @@ updateAnimation = do
   let dinoPos' = Animate.stepPosition dinoAnimations dinoPos frameDeltaSeconds
   modify $ \v -> v { vDinoPos = dinoPos' }
 
-updateOrigin :: (S m, HasInput m, Logger m) => m ()
+updateOrigin :: (R m, S m, HasInput m, Logger m) => m ()
 updateOrigin = do
   input <- getInput
+  -- Recenter origin
+  when (isPressed $ iCenterOrigin input) $ do
+    center <- asks (sCenter . cSettings)
+    modify $ \v -> v { vCenter = center }
+  -- Origin by mouse click
   when (isTouched $ iMouseClick input) $ modify $ \v -> v
-    { vCenter = iMousePos input }
+   { vCenter = iMousePos input }
 
 toggleVisuals :: (S m, HasInput m) => m ()
 toggleVisuals = do

@@ -14,10 +14,11 @@ data Input = Input
   , iBackground :: KeyState Int
   , iMousePos :: V2 Int
   , iMouseClick :: KeyState Int
+  , iCenterOrigin :: KeyState Int
   , iQuit :: Bool
   } deriving (Show, Eq)
 
 initInput :: Input
-initInput = Input a a a a a a a a (V2 0 0) a False
+initInput = Input a a a a a a a a (V2 0 0) a a False
   where
     a = initKeyState

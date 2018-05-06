@@ -37,6 +37,7 @@ stepControl events mouseClick i = i
   , iOutline = next 1 [SDL.KeycodeO] (iOutline i)
   , iBackground = next 1 [SDL.KeycodeB] (iBackground i)
   , iMouseClick = updateKeyState 1 (iMouseClick i) mouseClick
+  , iCenterOrigin = next 1 [SDL.KeycodeC] (iCenterOrigin i)
   , iQuit = elem SDL.QuitEvent events
   }
   where
