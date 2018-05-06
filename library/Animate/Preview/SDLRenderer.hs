@@ -1,4 +1,4 @@
-module Animate.Preview.Wrapper.SDLRenderer where
+module Animate.Preview.SDLRenderer where
 
 import qualified SDL
 import Data.StateVar (($=))

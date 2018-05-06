@@ -8,26 +8,17 @@ import Control.Monad.Reader (MonadReader(..), asks)
 import KeyState
 
 import Animate.Preview.Config
-import Animate.Preview.Effect.Clock
-import Animate.Preview.Effect.Logger
-import Animate.Preview.Effect.Renderer
-import Animate.Preview.Engine.Input
-import Animate.Preview.Engine.Frame
-import Animate.Preview.Engine.Title
-import Animate.Preview.Manager.Input
-import Animate.Preview.Scene.Title
+import Animate.Preview.Clock
+import Animate.Preview.Logger
+import Animate.Preview.Renderer
+import Animate.Preview.Input
+import Animate.Preview.Frame
+import Animate.Preview.Scene
+import Animate.Preview.ManagerInput
 
 import Animate.Preview.State
 
-mainLoop ::
-  ( MonadReader Config m
-  , MonadState Vars m
-  , Logger m
-  , Clock m
-  , Renderer m
-  , HasInput m
-  , Title m
-  ) => m ()
+mainLoop :: (R m, S m, Logger m, Clock m, Renderer m, HasInput m, Title m) => m ()
 mainLoop = do
   winSize <- asks cWinSize
   updateInput

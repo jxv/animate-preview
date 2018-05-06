@@ -11,8 +11,8 @@ import SDL.Vect
 import qualified SDL.Raw.Video as Raw
 import qualified SDL.Internal.Numbered as Numbered
 
-import Animate.Preview.Engine.Types
-import Animate.Preview.Engine.Dino
+import Animate.Preview.Animation
+import Animate.Preview.Dino
 
 data Resources = Resources
   { rDinoSprites :: Animate.SpriteSheet DinoKey SDL.Texture Seconds

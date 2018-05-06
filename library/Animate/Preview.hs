@@ -24,22 +24,20 @@ import Options.Generic
 import Data.Semigroup ((<>))
 
 import Animate.Preview.Config
-import Animate.Preview.Effect.Clock
-import Animate.Preview.Effect.Logger
-import Animate.Preview.Effect.Renderer
-import Animate.Preview.Wrapper.SDLInput
-import Animate.Preview.Wrapper.SDLRenderer
-import Animate.Preview.Manager.Input
+import Animate.Preview.Clock
+import Animate.Preview.Logger
+import Animate.Preview.Renderer
+import Animate.Preview.SDLInput
+import Animate.Preview.SDLRenderer
+import Animate.Preview.ManagerInput
 import Animate.Preview.Resource
 import Animate.Preview.Runner
-import Animate.Preview.Scene.Title
+import Animate.Preview.Scene
 import Animate.Preview.State
-import Options.Applicative
-import Data.Semigroup ((<>))
 
 data Sample = Sample
   { json :: String  <?> "JSON file path with sprite data"
-  , sheet :: (Maybe String) <?> "Force sprite sheet path"
+  , spritesheet :: (Maybe String) <?> "Force sprite sheet path"
   , width :: (Maybe Int) <?> "Window width (Minimum is 100 pixels)"
   , height :: (Maybe Int) <?> "Window height (Minimum is 100 pixels)"
   , scale :: (Maybe Float) <?> "Scale the sprite size"

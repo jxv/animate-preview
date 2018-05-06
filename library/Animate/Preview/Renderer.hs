@@ -1,4 +1,4 @@
-module Animate.Preview.Effect.Renderer where
+module Animate.Preview.Renderer where
 
 import qualified Animate
 import qualified SDL
@@ -10,10 +10,9 @@ import Control.Monad.Reader
 import Control.Monad.IO.Class (MonadIO(..))
 
 import Animate.Preview.Config
-import Animate.Preview.Engine.Types
-import Animate.Preview.Engine.Dino
-import Animate.Preview.Wrapper.SDLRenderer
-import Linear
+import Animate.Preview.Animation
+import Animate.Preview.Dino
+import Animate.Preview.SDLRenderer
 
 class Monad m => Renderer m where
   clearScreen :: m ()
@@ -21,7 +20,6 @@ class Monad m => Renderer m where
   drawBackground :: V2 Int -> m ()
   getDinoAnimations :: m (Animations DinoKey)
   drawDino :: DrawSprite DinoKey m
-  drawSpriteOutline :: m ()
 
 clearScreen' :: (SDLRenderer m, MonadReader Config m) => m ()
 clearScreen' = do

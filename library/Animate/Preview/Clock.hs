@@ -1,4 +1,4 @@
-module Animate.Preview.Effect.Clock where
+module Animate.Preview.Clock where
 
 import Control.Concurrent (threadDelay)
 

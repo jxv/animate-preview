@@ -1,4 +1,4 @@
-module Animate.Preview.Engine.Input where
+module Animate.Preview.Input where
 
 import KeyState
 
@@ -7,8 +7,9 @@ data Input = Input
   , iUp :: KeyState Int
   , iDown :: KeyState Int
   , iEscape :: KeyState Int
+  , iReload :: KeyState Int
   , iQuit :: Bool
   } deriving (Show, Eq)
 
 initInput :: Input
-initInput = Input initKeyState initKeyState initKeyState initKeyState False
+initInput = Input initKeyState initKeyState initKeyState initKeyState initKeyState False

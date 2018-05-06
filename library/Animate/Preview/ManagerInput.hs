@@ -1,11 +1,11 @@
-module Animate.Preview.Manager.Input where
+module Animate.Preview.ManagerInput where
 
 import qualified SDL
 import Control.Monad.State
 import KeyState
 
-import Animate.Preview.Engine.Input
-import Animate.Preview.Wrapper.SDLInput
+import Animate.Preview.Input
+import Animate.Preview.SDLInput
 import Animate.Preview.State
 
 class Monad m => HasInput m where
@@ -19,18 +19,19 @@ updateInput' = do
   events <- pollEventPayloads
   setInput (stepControl events input)
 
-getInput' :: MonadState Vars m => m Input
+getInput' :: S m => m Input
 getInput' = gets vInput
 
-setInput' :: MonadState Vars m => Input -> m ()
+setInput' :: S m => Input -> m ()
 setInput' input = modify (\v -> v { vInput = input })
 
 stepControl :: [SDL.EventPayload] -> Input -> Input
-stepControl events Input{iSpace,iUp,iDown,iEscape} = Input
+stepControl events Input{iSpace,iUp,iDown,iEscape,iReload} = Input
   { iSpace = next 1 [SDL.KeycodeSpace] iSpace
   , iUp = next 1 [SDL.KeycodeUp, SDL.KeycodeK] iUp
   , iDown = next 1 [SDL.KeycodeDown, SDL.KeycodeL] iDown
   , iEscape = next 1 [SDL.KeycodeEscape] iEscape
+  , iReload = next 1 [SDL.KeycodeR] iReload
   , iQuit = elem SDL.QuitEvent events
   }
   where

@@ -1,4 +1,4 @@
-module Animate.Preview.Wrapper.SDLInput where
+module Animate.Preview.SDLInput where
 
 import qualified SDL
 import Control.Monad.IO.Class (MonadIO(..))

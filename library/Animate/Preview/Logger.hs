@@ -1,4 +1,4 @@
-module Animate.Preview.Effect.Logger where
+module Animate.Preview.Logger where
 
 import Data.Text (Text)
 

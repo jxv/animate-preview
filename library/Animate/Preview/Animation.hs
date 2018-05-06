@@ -1,4 +1,4 @@
-module Animate.Preview.Engine.Types where
+module Animate.Preview.Animation where
 
 import qualified Animate
 

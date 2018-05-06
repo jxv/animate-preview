@@ -1,20 +1,23 @@
 {-# LANGUAGE TemplateHaskell #-}
+{-# LANGUAGE ConstraintKinds #-}
 module Animate.Preview.State where
 
+import qualified Animate
 import Control.Lens
+import Control.Monad.State (MonadState)
 
-import Animate.Preview.Engine.Input
-import Animate.Preview.Engine.Title
+import Animate.Preview.Animation
+import Animate.Preview.Dino
+import Animate.Preview.Input
 
 data Vars = Vars
-  { vTitle :: TitleVars
-  , vInput :: Input
+  { vInput :: Input
+  , vDinoPos :: Animate.Position DinoKey Seconds
   } deriving (Show, Eq)
 
 initVars :: Vars
-initVars = Vars initTitleVars initInput
-
-instance HasTitleVars Vars where
-  titleVars = lens vTitle (\v s -> v { vTitle = s })
+initVars = Vars initInput (Animate.initPosition DinoKey'Idle)
 
 makeClassy ''Vars
+
+type S m = MonadState Vars m

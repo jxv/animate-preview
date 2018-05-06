@@ -1,4 +1,4 @@
-module Animate.Preview.Engine.Dino where
+module Animate.Preview.Dino where
 
 import qualified Safe
 import qualified Animate
