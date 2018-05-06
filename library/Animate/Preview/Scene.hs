@@ -45,7 +45,9 @@ updateSpeed = do
   input <- getInput
   let up = isPressed (iFaster input)
   let down = isPressed (iSlower input)
+  let reset = isPressed (iAccelReset input)
   let change s
+        | reset = Scalar'None
         | up && not down = incrementScalar 8 s
         | down && not up = decrementScalar 9 s
         | otherwise = s
@@ -56,7 +58,9 @@ updateScale = do
   input <- getInput
   let up = isPressed (iScaleUp input)
   let down = isPressed (iScaleDown input)
+  let reset = isPressed (iScaleReset input)
   let change s
+        | reset = Scalar'None
         | up && not down = incrementScalar 80 s
         | down && not up = decrementScalar 9 s
         | otherwise = s

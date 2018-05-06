@@ -29,6 +29,7 @@ class Monad m => HasInput m where
 stepControl :: [SDL.EventPayload] -> Bool -> Input -> Input
 stepControl events mouseClick i = i
   { iSpace = next [SDL.KeycodeSpace] iSpace
+  , iScaleReset = next [SDL.KeycodeS] iScaleReset
   , iScaleUp = next [SDL.KeycodeUp, SDL.KeycodeK] iScaleUp
   , iScaleDown = next [SDL.KeycodeDown, SDL.KeycodeJ] iScaleDown
   , iEscape = next [SDL.KeycodeEscape] iEscape
@@ -40,6 +41,7 @@ stepControl events mouseClick i = i
   , iCenterOrigin = next [SDL.KeycodeC] iCenterOrigin
   , iFaster = next [SDL.KeycodeL, SDL.KeycodeRight] iFaster
   , iSlower = next [SDL.KeycodeH, SDL.KeycodeLeft] iSlower
+  , iAccelReset = next [SDL.KeycodeA] iAccelReset
   , iQuit = elem SDL.QuitEvent events
   }
   where
