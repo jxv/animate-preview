@@ -5,6 +5,7 @@ module Animate.Preview.State where
 import qualified Animate
 import Control.Lens
 import Control.Monad.State (MonadState)
+import Linear
 
 import Animate.Preview.Animation
 import Animate.Preview.Dino
@@ -17,15 +18,17 @@ data Vars = Vars
   , vBackground :: Mono
   , vOrigin :: Maybe Color
   , vOutline :: Maybe Color
+  , vCenter :: V2 Int
   } deriving (Show, Eq)
 
-initVars :: Vars
-initVars = Vars
+initVars :: V2 Int -> Vars
+initVars center = Vars
   { vInput = initInput
   , vDinoPos = Animate.initPosition DinoKey'Idle
   , vBackground = Mono'Gray
   , vOrigin = Just Color'Red
   , vOutline = Just Color'Green
+  , vCenter = center
   }
 
 makeClassy ''Vars

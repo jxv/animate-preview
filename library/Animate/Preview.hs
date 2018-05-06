@@ -73,7 +73,7 @@ main = do
         , cResources = resources
         , cWinSize = windowSize
         , cSettings = settings }
-  runAnimatePreview cfg initVars mainLoop
+  runAnimatePreview cfg (initVars windowCenter) mainLoop
   SDL.destroyWindow window
   freeResources resources
   Mixer.closeAudio

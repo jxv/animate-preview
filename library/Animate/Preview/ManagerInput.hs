@@ -14,7 +14,9 @@ class Monad m => HasInput m where
   updateInput = do
     input <- getInput
     events <- pollEventPayloads
-    setInput (stepControl events input)
+    mousePos <- getMousePos
+    mouseClick <- getMouseClick
+    setInput (stepControl events mouseClick input) { iMousePos = mousePos }
 
   setInput :: Input -> m ()
   default setInput :: S m => Input -> m ()
@@ -24,8 +26,8 @@ class Monad m => HasInput m where
   default getInput :: S m => m Input
   getInput = gets vInput
 
-stepControl :: [SDL.EventPayload] -> Input -> Input
-stepControl events i = Input
+stepControl :: [SDL.EventPayload] -> Bool -> Input -> Input
+stepControl events mouseClick i = i
   { iSpace = next 1 [SDL.KeycodeSpace] (iSpace i)
   , iUp = next 1 [SDL.KeycodeUp, SDL.KeycodeK] (iUp i)
   , iDown = next 1 [SDL.KeycodeDown, SDL.KeycodeL] (iDown i)
@@ -34,12 +36,17 @@ stepControl events i = Input
   , iOrigin = next 1 [SDL.KeycodeT] (iOrigin i)
   , iOutline = next 1 [SDL.KeycodeO] (iOutline i)
   , iBackground = next 1 [SDL.KeycodeB] (iBackground i)
+  , iMouseClick = updateKeyState 1 (iMouseClick i) mouseClick
   , iQuit = elem SDL.QuitEvent events
   }
   where
-    next count keycodes keystate
-      | or $ map pressed keycodes = pressedKeyState
-      | or $ map released keycodes = releasedKeyState
-      | otherwise = maintainKeyState count keystate
+    next = nextKeystate events
+
+nextKeystate :: [SDL.EventPayload] -> Int -> [SDL.Keycode] -> KeyState Int -> KeyState Int
+nextKeystate events count keycodes keystate
+  | or $ map pressed keycodes = pressedKeyState
+  | or $ map released keycodes = releasedKeyState
+  | otherwise = maintainKeyState count keystate
+  where
     released keycode = or $ map (keycodeReleased keycode) events
     pressed keycode = or $ map (keycodePressed keycode) events
