@@ -30,10 +30,12 @@ updateScene = do
   dinoAnimations <- getDinoAnimations
   dinoPos <- gets vDinoPos
   let dinoPos' = Animate.stepPosition dinoAnimations dinoPos frameDeltaSeconds
+  let toggleBackground = isPressed (iBackground input)
   let toggleOrigin = isPressed (iOrigin input)
   let toggleOutline = isPressed (iOutline input)
   modify $ (\v -> v
     { vDinoPos = dinoPos'
+    , vBackground = (if toggleBackground then toggleMono else id) (vBackground v)
     , vOrigin = (if toggleOrigin then toggleColors else id) (vOrigin v)
     , vOutline = (if toggleOutline then toggleColors else id) (vOutline v)
     })

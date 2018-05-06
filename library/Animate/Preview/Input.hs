@@ -10,10 +10,11 @@ data Input = Input
   , iReload :: KeyState Int
   , iOrigin :: KeyState Int
   , iOutline :: KeyState Int
+  , iBackground :: KeyState Int
   , iQuit :: Bool
   } deriving (Show, Eq)
 
 initInput :: Input
-initInput = Input a a a a a a a False
+initInput = Input a a a a a a a a False
   where
     a = initKeyState

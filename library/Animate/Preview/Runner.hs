@@ -21,10 +21,11 @@ import Animate.Preview.State
 mainLoop :: (R m, S m, Logger m, Clock m, Renderer m, HasInput m, Scene m) => m ()
 mainLoop = do
   winSize <- asks cWinSize
+  background <- gets vBackground
   updateInput
   input <- getInput
   clearScreen
-  drawBackground winSize
+  drawBackground winSize background
   sceneStep
   drawScreen
   delayMilliseconds frameDeltaMilliseconds

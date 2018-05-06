@@ -33,6 +33,7 @@ stepControl events i = Input
   , iReload = next 1 [SDL.KeycodeR] (iReload i)
   , iOrigin = next 1 [SDL.KeycodeT] (iOrigin i)
   , iOutline = next 1 [SDL.KeycodeO] (iOutline i)
+  , iBackground = next 1 [SDL.KeycodeB] (iBackground i)
   , iQuit = elem SDL.QuitEvent events
   }
   where

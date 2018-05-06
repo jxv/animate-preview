@@ -29,12 +29,11 @@ class Monad m => Renderer m where
     renderer <- asks cRenderer
     presentRenderer renderer
 
-  drawBackground :: V2 Int -> m ()
-  default drawBackground :: (SDLRenderer m, MonadReader Config m, MonadIO m) => V2 Int -> m ()
-  drawBackground (V2 w h) = do
+  drawBackground :: V2 Int -> Mono -> m ()
+  default drawBackground :: (SDLRenderer m, MonadReader Config m, MonadIO m) => V2 Int -> Mono -> m ()
+  drawBackground (V2 w h) mono = do
     renderer <- asks cRenderer
-    let liteGray = V4 0x88 0x88 0x88 0xff
-    let darkGray = V4 0x66 0x66 0x66 0xff
+    let (lite, dark) = fromMono mono
     let indices = do
           x <- [0..(w `div` 10)]
           y <- [0..(h `div` 10)]
@@ -42,7 +41,7 @@ class Monad m => Renderer m where
               x1 = x * 10 + 10
           let y0 = y * 10
               y1 = y * 10 + 10
-          let color = if (x + y) `mod` 2 == 0 then liteGray else darkGray
+          let color = if (x + y) `mod` 2 == 0 then lite else dark
           return (V2 x0 y0, V2 x1 y1, color) 
     flip mapM_ indices $ \(a,b,c) ->
       liftIO $ Gfx.fillRectangle renderer (fromIntegral <$> a) (fromIntegral <$> b) c
