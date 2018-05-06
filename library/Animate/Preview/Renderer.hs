@@ -13,6 +13,7 @@ import Animate.Preview.Config
 import Animate.Preview.Resource
 import Animate.Preview.Animation
 import Animate.Preview.Dino
+import Animate.Preview.Color
 import Animate.Preview.SDLRenderer
 
 class Monad m => Renderer m where
@@ -51,19 +52,20 @@ class Monad m => Renderer m where
   default getDinoAnimations :: (SDLRenderer m, R m) => m (Animations DinoKey)
   getDinoAnimations = getSpriteAnimations (rDinoSprites . cResources)
 
-  drawDino :: Bool -> DrawSprite DinoKey m
-  default drawDino :: (SDLRenderer m, R m, MonadIO m) => Bool -> DrawSprite DinoKey m
+  drawDino :: Maybe Color -> DrawSprite DinoKey m
+  default drawDino :: (SDLRenderer m, R m, MonadIO m) => Maybe Color -> DrawSprite DinoKey m
   drawDino = drawSprite (rDinoSprites . cResources)
 
-  drawCrosshair :: (Int, Int) -> m ()
-  default drawCrosshair :: (MonadIO m, R m) => (Int, Int) -> m ()
-  drawCrosshair (x,y) = do
+  drawCrosshair :: (Int, Int) -> Color -> m ()
+  default drawCrosshair :: (MonadIO m, R m) => (Int, Int) -> Color -> m ()
+  drawCrosshair (x,y) color = do
     ren <- asks cRenderer
     let radius = 8
     let diameter = fromIntegral $ radius * 2
     liftIO $ do
-      Gfx.horizontalLine ren (fromIntegral <$> V2 (x - radius) y) diameter (V4 0xff 0x00 0x00 0xff)
-      Gfx.verticalLine ren (fromIntegral <$> V2 x (y - radius)) diameter (V4 0xff 0x00 0x00 0xff)
+      let color' = fromColor color
+      Gfx.horizontalLine ren (fromIntegral <$> V2 (x - radius) y) diameter color'
+      Gfx.verticalLine ren (fromIntegral <$> V2 x (y - radius)) diameter color'
 
 ----
 
@@ -79,15 +81,16 @@ drawTextureSprite getTex (x,y) = do
     Nothing
     (Just $ SDL.Rectangle (SDL.P $ SDL.V2 (fromIntegral x) (fromIntegral y)) dim)
 
-drawSprite :: (SDLRenderer m, R m, MonadIO m) => (Config -> Animate.SpriteSheet key SDL.Texture Seconds) -> Bool -> Animate.SpriteClip key -> (Int, Int) -> m ()
+drawSprite :: (SDLRenderer m, R m, MonadIO m) => (Config -> Animate.SpriteSheet key SDL.Texture Seconds) -> Maybe Color -> Animate.SpriteClip key -> (Int, Int) -> m ()
 drawSprite ss outline clip (x,y) = do
   renderer <- asks cRenderer
   sheet <- asks (Animate.ssImage . ss)
   let clip'@(SDL.Rectangle _ dim) = rectFromClip clip
   let offset = offsetFromClip clip
   let loc = (+) <$> offset <*> V2 (fromIntegral x) (fromIntegral y)
-  when outline $
-    liftIO $ Gfx.rectangle renderer loc (loc + dim) (V4 0x00 0xff 0x00 0xff)
+  case outline of
+    Nothing -> return ()
+    Just outline' -> liftIO $ Gfx.rectangle renderer loc (loc + dim) (fromColor outline')
   drawTexture
     renderer
     sheet

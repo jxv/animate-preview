@@ -9,7 +9,6 @@ module Animate.Preview
 import qualified SDL
 import qualified SDL.Mixer as Mixer
 import qualified SDL.Font as Font
-import qualified Animate
 import Control.Applicative ((<|>))
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
@@ -18,9 +17,7 @@ import Control.Exception.Safe (MonadThrow, MonadCatch)
 import Data.Maybe (fromMaybe)
 import Options.Generic
 import SDL.Vect
-import Safe (readMay)
 
-import Animate.Preview.Animation
 import Animate.Preview.Config
 import Animate.Preview.Clock
 import Animate.Preview.Logger
