@@ -43,21 +43,30 @@ updateAnimation = do
 updateSpeed :: (S m, HasInput m) => m ()
 updateSpeed = do
   input <- getInput
-  let up = isPressed (iFaster input)
-  let down = isPressed (iSlower input)
+  let iup = iFaster input
+  let idown = iSlower input
+  let up = isPressed iup || (isHeld iup && counterGreater 20 iup)
+  let down = isPressed idown || (isHeld idown && counterGreater 20 idown)
   let reset = isPressed (iAccelReset input)
   let change s
         | reset = Scalar'None
-        | up && not down = incrementScalar 8 s
+        | up && not down = incrementScalar 16 s
         | down && not up = decrementScalar 9 s
         | otherwise = s
   modify $ \v -> v { vAccel = change (vAccel v) }
 
+counterGreater :: Int -> KeyState Int -> Bool  
+counterGreater n ks = case ksCounter ks of
+  Nothing -> False
+  Just counter -> counter > n
+
 updateScale :: (S m, HasInput m) => m ()
 updateScale = do
   input <- getInput
-  let up = isPressed (iScaleUp input)
-  let down = isPressed (iScaleDown input)
+  let iup = iScaleUp input
+  let idown = iScaleDown input
+  let up = isPressed iup || (isHeld iup && counterGreater 20 iup)
+  let down = isPressed idown || (isHeld idown && counterGreater 20 idown)
   let reset = isPressed (iScaleReset input)
   let change s
         | reset = Scalar'None
