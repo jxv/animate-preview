@@ -28,20 +28,22 @@ class Monad m => HasInput m where
 
 stepControl :: [SDL.EventPayload] -> Bool -> Input -> Input
 stepControl events mouseClick i = i
-  { iSpace = next 1 [SDL.KeycodeSpace] (iSpace i)
-  , iUp = next 1 [SDL.KeycodeUp, SDL.KeycodeK] (iUp i)
-  , iDown = next 1 [SDL.KeycodeDown, SDL.KeycodeL] (iDown i)
-  , iEscape = next 1 [SDL.KeycodeEscape] (iEscape i)
-  , iReload = next 1 [SDL.KeycodeR] (iReload i)
-  , iOrigin = next 1 [SDL.KeycodeT] (iOrigin i)
-  , iOutline = next 1 [SDL.KeycodeO] (iOutline i)
-  , iBackground = next 1 [SDL.KeycodeB] (iBackground i)
+  { iSpace = next [SDL.KeycodeSpace] iSpace
+  , iUp = next [SDL.KeycodeUp, SDL.KeycodeK] iUp
+  , iDown = next [SDL.KeycodeDown, SDL.KeycodeL] iDown
+  , iEscape = next [SDL.KeycodeEscape] iEscape
+  , iReload = next [SDL.KeycodeR] iReload
+  , iOrigin = next [SDL.KeycodeT] iOrigin
+  , iOutline = next [SDL.KeycodeO] iOutline
+  , iBackground = next [SDL.KeycodeB] iBackground
   , iMouseClick = updateKeyState 1 (iMouseClick i) mouseClick
-  , iCenterOrigin = next 1 [SDL.KeycodeC] (iCenterOrigin i)
+  , iCenterOrigin = next [SDL.KeycodeC] iCenterOrigin
+  , iFaster = next [SDL.KeycodeSemicolon] iFaster
+  , iSlower = next [SDL.KeycodeJ] iSlower
   , iQuit = elem SDL.QuitEvent events
   }
   where
-    next = nextKeystate events
+    next xs f = nextKeystate events 1 xs (f i)
 
 nextKeystate :: [SDL.EventPayload] -> Int -> [SDL.Keycode] -> KeyState Int -> KeyState Int
 nextKeystate events count keycodes keystate

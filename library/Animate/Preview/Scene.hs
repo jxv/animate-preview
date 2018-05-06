@@ -8,6 +8,8 @@ import Control.Monad.State (MonadState(..), modify, gets)
 import KeyState
 import Linear
 
+import Animate.Preview.Accel
+import Animate.Preview.Animation
 import Animate.Preview.Config
 import Animate.Preview.Renderer
 import Animate.Preview.Input
@@ -24,6 +26,7 @@ class Monad m => Scene m where
   sceneStep = do
     toggleVisuals
     updateOrigin
+    updateSpeed
     updateAnimation
     drawScene
 
@@ -31,8 +34,21 @@ updateAnimation :: (R m, S m, Renderer m, HasInput m) => m ()
 updateAnimation = do
   dinoAnimations <- getDinoAnimations
   dinoPos <- gets vDinoPos
-  let dinoPos' = Animate.stepPosition dinoAnimations dinoPos frameDeltaSeconds
+  accel <- gets vAccel
+  let accelScalar = accelAsSecondScalar accel
+  let dinoPos' = Animate.stepPosition dinoAnimations dinoPos (frameDeltaSeconds * (Seconds accelScalar))
   modify $ \v -> v { vDinoPos = dinoPos' }
+
+updateSpeed :: (S m, HasInput m, Logger m) => m ()
+updateSpeed = do
+  input <- getInput
+  let slower = isPressed (iSlower input)
+  let faster = isPressed (iFaster input)
+  let change accel
+        | faster && not slower = incrementAccel accel
+        | slower && not faster = decrementAccel accel
+        | otherwise = accel
+  modify $ \v -> v { vAccel = change (vAccel v) }
 
 updateOrigin :: (R m, S m, HasInput m, Logger m) => m ()
 updateOrigin = do

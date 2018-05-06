@@ -11,6 +11,7 @@ import Animate.Preview.Animation
 import Animate.Preview.Dino
 import Animate.Preview.Input
 import Animate.Preview.Color
+import Animate.Preview.Accel
 
 data Vars = Vars
   { vInput :: Input
@@ -19,6 +20,7 @@ data Vars = Vars
   , vOrigin :: Maybe Color
   , vOutline :: Maybe Color
   , vCenter :: V2 Int
+  , vAccel :: Accel
   } deriving (Show, Eq)
 
 initVars :: V2 Int -> Vars
@@ -29,6 +31,7 @@ initVars center = Vars
   , vOrigin = Just Color'Red
   , vOutline = Just Color'Green
   , vCenter = center
+  , vAccel = Accel'Normal
   }
 
 makeClassy ''Vars
