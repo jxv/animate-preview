@@ -1,4 +1,3 @@
-{-# LANGUAGE TemplateHaskell #-}
 module Animate.Preview.Scene where
 
 import qualified Animate
@@ -16,24 +15,23 @@ import Animate.Preview.Dino
 import Animate.Preview.State
 import Animate.Preview.ManagerInput
 
-class Monad m => Title m where
-  titleStep :: m ()
+class Monad m => Scene m where
+  sceneStep :: m ()
+  default sceneStep :: (R m, S m, Renderer m, HasInput m) => m ()
+  sceneStep = do
+    input <- getInput
+    updateScene
+    drawScene
 
-titleStep' :: (R m, S m, Renderer m, HasInput m) => m ()
-titleStep' = do
-  input <- getInput
-  updateTitle
-  drawTitle
-
-updateTitle :: (S m, R m, Renderer m, HasInput m) => m ()
-updateTitle = do
+updateScene :: (R m, S m, Renderer m, HasInput m) => m ()
+updateScene = do
   dinoAnimations <- getDinoAnimations
   dinoPos <- gets vDinoPos
   let dinoPos' = Animate.stepPosition dinoAnimations dinoPos frameDeltaSeconds
   modify $ (\v -> v { vDinoPos = dinoPos' })
 
-drawTitle :: (S m, R m, Renderer m, HasInput m) => m ()
-drawTitle = do
+drawScene :: (R m, S m, Renderer m, HasInput m) => m ()
+drawScene = do
   dinoPos <- gets vDinoPos
   dinoAnimations <- getDinoAnimations
   let dinoLoc = Animate.currentLocation dinoAnimations dinoPos

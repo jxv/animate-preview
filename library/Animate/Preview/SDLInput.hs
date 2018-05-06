@@ -21,6 +21,5 @@ keycodeReleased keycode event = case event of
 
 class Monad m => SDLInput m where
   pollEventPayloads :: m [SDL.EventPayload]
-
-pollEventPayloads' :: MonadIO m => m [SDL.EventPayload]
-pollEventPayloads' = liftIO $ map SDL.eventPayload <$> SDL.pollEvents
+  default pollEventPayloads :: MonadIO m => m [SDL.EventPayload]
+  pollEventPayloads = liftIO $ map SDL.eventPayload <$> SDL.pollEvents

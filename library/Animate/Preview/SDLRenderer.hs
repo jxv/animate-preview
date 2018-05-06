@@ -9,26 +9,19 @@ import Control.Monad (void)
 
 class Monad m => SDLRenderer m where
   presentRenderer :: SDL.Renderer -> m ()
+  default presentRenderer :: MonadIO m => SDL.Renderer -> m ()
+  presentRenderer = SDL.present
+
   clearRenderer :: SDL.Renderer -> m ()
+  default clearRenderer :: MonadIO m => SDL.Renderer -> m ()
+  clearRenderer ren = do
+    SDL.rendererDrawColor ren $= V4 0x00 0x00 0x00 0xff
+    liftIO $ void $ SDL.clear ren
+
   queryTexture :: SDL.Texture -> m SDL.TextureInfo
+  default queryTexture ::  MonadIO m => SDL.Texture -> m SDL.TextureInfo
+  queryTexture = SDL.queryTexture
+
   drawTexture :: SDL.Renderer -> SDL.Texture -> Maybe (SDL.Rectangle CInt)-> Maybe (SDL.Rectangle CInt) -> m ()
-
-updateWindowSurface' :: MonadIO m => SDL.Window -> m ()
-updateWindowSurface' window = liftIO $ SDL.updateWindowSurface window
-
-presentRenderer' :: MonadIO m => SDL.Renderer -> m ()
-presentRenderer' = SDL.present
-
-clearSurface' :: MonadIO m => SDL.Surface -> m ()
-clearSurface' screen = liftIO $ SDL.surfaceFillRect screen Nothing (V4 0 0 0 0)
-
-drawTexture' :: MonadIO m => SDL.Renderer -> SDL.Texture -> Maybe (SDL.Rectangle CInt) -> Maybe (SDL.Rectangle CInt) -> m ()
-drawTexture' renderer tex maybeClip maybeLoc = SDL.copy renderer tex maybeClip maybeLoc
-
-clearRenderer' :: MonadIO m => SDL.Renderer -> m ()
-clearRenderer' ren = do
-  SDL.rendererDrawColor ren $= V4 0x00 0x00 0x00 0xff
-  liftIO $ void $ SDL.clear ren
-
-queryTexture' ::  MonadIO m => SDL.Texture -> m SDL.TextureInfo
-queryTexture' = SDL.queryTexture
+  default drawTexture :: MonadIO m => SDL.Renderer -> SDL.Texture -> Maybe (SDL.Rectangle CInt) -> Maybe (SDL.Rectangle CInt) -> m ()
+  drawTexture renderer tex maybeClip maybeLoc = SDL.copy renderer tex maybeClip maybeLoc

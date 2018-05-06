@@ -9,19 +9,13 @@ module Animate.Preview
 import qualified SDL
 import qualified SDL.Mixer as Mixer
 import qualified SDL.Font as Font
-import qualified Data.Text.IO as T
-import Data.Maybe (fromMaybe)
-
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
 import Control.Monad.State (MonadState, StateT, evalStateT)
 import Control.Exception.Safe (MonadThrow, MonadCatch)
-import SDL.Vect
-import System.Random
-
-import Options.Applicative
+import Data.Maybe (fromMaybe)
 import Options.Generic
-import Data.Semigroup ((<>))
+import SDL.Vect
 
 import Animate.Preview.Config
 import Animate.Preview.Clock
@@ -77,32 +71,10 @@ newtype AnimatePreview a = AnimatePreview (ReaderT Config (StateT Vars IO) a)
 runAnimatePreview :: Config -> Vars -> AnimatePreview a -> IO a
 runAnimatePreview config v (AnimatePreview m) = evalStateT (runReaderT m config) v
 
-instance Clock AnimatePreview where
-  delayMilliseconds = liftIO . delayMilliseconds'
-
-instance Logger AnimatePreview where
-  logText = liftIO . T.putStrLn
-
-instance SDLRenderer AnimatePreview where
-  drawTexture = drawTexture'
-  presentRenderer = presentRenderer'
-  clearRenderer = clearRenderer'
-  queryTexture = queryTexture'
-
-instance SDLInput AnimatePreview where
-  pollEventPayloads = pollEventPayloads'
-
-instance HasInput AnimatePreview where
-  updateInput = updateInput'
-  getInput = getInput'
-  setInput = setInput'
-
-instance Renderer AnimatePreview where
-  clearScreen = clearScreen'
-  drawScreen = drawScreen'
-  getDinoAnimations = getSpriteAnimations (rDinoSprites . cResources)
-  drawDino = drawSprite (rDinoSprites . cResources)
-  drawBackground = drawBackground'
-
-instance Title AnimatePreview where
-  titleStep = titleStep'
+instance Clock AnimatePreview
+instance Logger AnimatePreview
+instance SDLRenderer AnimatePreview
+instance SDLInput AnimatePreview
+instance HasInput AnimatePreview
+instance Renderer AnimatePreview
+instance Scene AnimatePreview

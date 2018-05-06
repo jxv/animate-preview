@@ -10,20 +10,19 @@ import Animate.Preview.State
 
 class Monad m => HasInput m where
   updateInput :: m ()
+  default updateInput :: (HasInput m, SDLInput m) => m ()
+  updateInput = do
+    input <- getInput
+    events <- pollEventPayloads
+    setInput (stepControl events input)
+
   setInput :: Input -> m ()
+  default setInput :: S m => Input -> m ()
+  setInput input = modify (\v -> v { vInput = input })
+
   getInput :: m Input
-
-updateInput' :: (HasInput m, SDLInput m) => m ()
-updateInput' = do
-  input <- getInput
-  events <- pollEventPayloads
-  setInput (stepControl events input)
-
-getInput' :: S m => m Input
-getInput' = gets vInput
-
-setInput' :: S m => Input -> m ()
-setInput' input = modify (\v -> v { vInput = input })
+  default getInput :: S m => m Input
+  getInput = gets vInput
 
 stepControl :: [SDL.EventPayload] -> Input -> Input
 stepControl events Input{iSpace,iUp,iDown,iEscape,iReload} = Input

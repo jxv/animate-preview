@@ -18,14 +18,14 @@ import Animate.Preview.ManagerInput
 
 import Animate.Preview.State
 
-mainLoop :: (R m, S m, Logger m, Clock m, Renderer m, HasInput m, Title m) => m ()
+mainLoop :: (R m, S m, Logger m, Clock m, Renderer m, HasInput m, Scene m) => m ()
 mainLoop = do
   winSize <- asks cWinSize
   updateInput
   input <- getInput
   clearScreen
   drawBackground winSize
-  titleStep
+  sceneStep
   drawScreen
   delayMilliseconds frameDeltaMilliseconds
   let quit = iQuit input || ksStatus (iEscape input) == KeyStatus'Pressed

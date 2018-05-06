@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d8fe8f6ea13ed8d4f3d32568eee223efcee20bfaf03883154d278401936f9845
+-- hash: 3505691bac0df72b9c966af5d0037bff431197f46b73efc216898f4e88a11b65
 
 name:           animate-preview
 version:        0.0.0
@@ -33,7 +33,7 @@ source-repository head
 library
   hs-source-dirs:
       library
-  default-extensions: DuplicateRecordFields FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving LambdaCase NamedFieldPuns ScopedTypeVariables OverloadedStrings
+  default-extensions: DuplicateRecordFields FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving LambdaCase NamedFieldPuns ScopedTypeVariables OverloadedStrings DefaultSignatures MultiParamTypeClasses
   ghc-options: -Wall
   build-depends:
       StateVar
@@ -83,7 +83,7 @@ executable animate-preview
   main-is: Main.hs
   hs-source-dirs:
       executable
-  default-extensions: DuplicateRecordFields FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving LambdaCase NamedFieldPuns ScopedTypeVariables OverloadedStrings
+  default-extensions: DuplicateRecordFields FlexibleContexts FlexibleInstances GeneralizedNewtypeDeriving LambdaCase NamedFieldPuns ScopedTypeVariables OverloadedStrings DefaultSignatures MultiParamTypeClasses
   ghc-options: -Wall -rtsopts -threaded -with-rtsopts=-N
   build-depends:
       animate-preview
