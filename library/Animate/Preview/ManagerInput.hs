@@ -29,9 +29,13 @@ class Monad m => HasInput m where
 stepControl :: [SDL.EventPayload] -> Bool -> Input -> Input
 stepControl events mouseClick i = i
   { iSpace = next [SDL.KeycodeSpace] iSpace
+  , iUp = next [SDL.KeycodeUp, SDL.KeycodeK] iUp
+  , iDown = next [SDL.KeycodeDown, SDL.KeycodeJ] iDown
+  , iLeft = next [SDL.KeycodeLeft, SDL.KeycodeH] iLeft
+  , iRight = next [SDL.KeycodeRight, SDL.KeycodeL] iRight
   , iScaleReset = next [SDL.KeycodeS] iScaleReset
-  , iScaleUp = next [SDL.KeycodeUp, SDL.KeycodeK] iScaleUp
-  , iScaleDown = next [SDL.KeycodeDown, SDL.KeycodeJ] iScaleDown
+  , iScaleUp = next [SDL.KeycodePlus, SDL.KeycodeEquals] iScaleUp
+  , iScaleDown = next [SDL.KeycodeMinus] iScaleDown
   , iEscape = next [SDL.KeycodeEscape] iEscape
   , iReload = next [SDL.KeycodeR] iReload
   , iOrigin = next [SDL.KeycodeT] iOrigin
@@ -39,8 +43,8 @@ stepControl events mouseClick i = i
   , iBackground = next [SDL.KeycodeB] iBackground
   , iMouseClick = updateKeyState 1 (iMouseClick i) mouseClick
   , iCenterOrigin = next [SDL.KeycodeC] iCenterOrigin
-  , iFaster = next [SDL.KeycodeL, SDL.KeycodeRight] iFaster
-  , iSlower = next [SDL.KeycodeH, SDL.KeycodeLeft] iSlower
+  , iFaster = next [SDL.KeycodeF] iFaster
+  , iSlower = next [SDL.KeycodeD] iSlower
   , iAccelReset = next [SDL.KeycodeA] iAccelReset
   , iQuit = elem SDL.QuitEvent events
   }

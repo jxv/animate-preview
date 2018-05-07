@@ -5,6 +5,10 @@ import Linear
 
 data Input = Input
   { iSpace :: KeyState Int
+  , iUp :: KeyState Int
+  , iDown :: KeyState Int
+  , iLeft :: KeyState Int
+  , iRight :: KeyState Int
   , iScaleReset :: KeyState Int
   , iScaleUp :: KeyState Int
   , iScaleDown :: KeyState Int
@@ -23,6 +27,6 @@ data Input = Input
   } deriving (Show, Eq)
 
 initInput :: Input
-initInput = Input a a a a a a a a a (V2 0 0) a a a a a False
+initInput = Input a a a a a a a a a a a a a (V2 0 0) a a a a a False
   where
     a = initKeyState

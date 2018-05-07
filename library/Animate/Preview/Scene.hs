@@ -43,10 +43,8 @@ updateAnimation = do
 updateSpeed :: (S m, HasInput m) => m ()
 updateSpeed = do
   input <- getInput
-  let iup = iFaster input
-  let idown = iSlower input
-  let up = isPressed iup || (isHeld iup && counterGreater 20 iup)
-  let down = isPressed idown || (isHeld idown && counterGreater 20 idown)
+  let up = onceThenFire (iFaster input) 
+  let down = onceThenFire (iSlower input)
   let reset = isPressed (iAccelReset input)
   let change s
         | reset = Scalar'None
@@ -54,6 +52,9 @@ updateSpeed = do
         | down && not up = decrementScalar 9 s
         | otherwise = s
   modify $ \v -> v { vAccel = change (vAccel v) }
+
+onceThenFire :: KeyState Int -> Bool
+onceThenFire ks = isPressed ks || (isHeld ks && counterGreater 20 ks)
 
 counterGreater :: Int -> KeyState Int -> Bool  
 counterGreater n ks = case ksCounter ks of
@@ -63,10 +64,8 @@ counterGreater n ks = case ksCounter ks of
 updateScale :: (S m, HasInput m) => m ()
 updateScale = do
   input <- getInput
-  let iup = iScaleUp input
-  let idown = iScaleDown input
-  let up = isPressed iup || (isHeld iup && counterGreater 20 iup)
-  let down = isPressed idown || (isHeld idown && counterGreater 20 idown)
+  let up = onceThenFire (iScaleUp input) 
+  let down = onceThenFire (iScaleDown input)
   let reset = isPressed (iScaleReset input)
   let change s
         | reset = Scalar'None
@@ -78,6 +77,12 @@ updateScale = do
 updateOrigin :: (R m, S m, HasInput m) => m ()
 updateOrigin = do
   input <- getInput
+  -- Move with keys
+  let d = 5
+  when (onceThenFire $ iUp input) $ modify $ \v -> v { vCenter = vCenter v + V2 0 (-d) }
+  when (onceThenFire $ iDown input) $ modify $ \v -> v { vCenter = vCenter v + V2 0 d }
+  when (onceThenFire $ iLeft input) $ modify $ \v -> v { vCenter = vCenter v + V2 (-d) 0 }
+  when (onceThenFire $ iRight input) $ modify $ \v -> v { vCenter = vCenter v + V2 d 0 }
   -- Recenter origin
   when (isPressed $ iCenterOrigin input) $ do
     center <- asks (sCenter . cSettings)
