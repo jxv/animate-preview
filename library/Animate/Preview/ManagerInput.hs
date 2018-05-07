@@ -16,7 +16,8 @@ class Monad m => HasInput m where
     events <- pollEventPayloads
     mousePos <- getMousePos
     mouseClick <- getMouseClick
-    setInput (stepControl events mouseClick input) { iMousePos = mousePos }
+    middleClick <- getMouseMiddleClick
+    setInput (stepControl events (mouseClick, middleClick) input) { iMousePos = mousePos }
 
   setInput :: Input -> m ()
   default setInput :: S m => Input -> m ()
@@ -26,8 +27,8 @@ class Monad m => HasInput m where
   default getInput :: S m => m Input
   getInput = gets vInput
 
-stepControl :: [SDL.EventPayload] -> Bool -> Input -> Input
-stepControl events mouseClick i = i
+stepControl :: [SDL.EventPayload] -> (Bool, Bool) -> Input -> Input
+stepControl events (mouseClick, middleClick) i = i
   { iSpace = next [SDL.KeycodeSpace] iSpace
   , iUp = next [SDL.KeycodeUp, SDL.KeycodeK] iUp
   , iDown = next [SDL.KeycodeDown, SDL.KeycodeJ] iDown
@@ -41,6 +42,7 @@ stepControl events mouseClick i = i
   , iOrigin = next [SDL.KeycodeT] iOrigin
   , iOutline = next [SDL.KeycodeO] iOutline
   , iBackground = next [SDL.KeycodeB] iBackground
+  , iMouseMiddleClick = updateKeyState 1 (iMouseMiddleClick i) middleClick
   , iMouseClick = updateKeyState 1 (iMouseClick i) mouseClick
   , iCenterOrigin = next [SDL.KeycodeC] iCenterOrigin
   , iFaster = next [SDL.KeycodeF] iFaster

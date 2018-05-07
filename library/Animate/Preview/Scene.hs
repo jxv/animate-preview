@@ -66,7 +66,7 @@ updateScale = do
   input <- getInput
   let up = onceThenFire (iScaleUp input) 
   let down = onceThenFire (iScaleDown input)
-  let reset = isPressed (iScaleReset input)
+  let reset = isPressed (iScaleReset input) || isPressed (iMouseMiddleClick input)
   let change s
         | reset = Scalar'None
         | up && not down = incrementScalar 80 s

@@ -19,6 +19,7 @@ data Input = Input
   , iBackground :: KeyState Int
   , iMousePos :: V2 Int
   , iMouseClick :: KeyState Int
+  , iMouseMiddleClick :: KeyState Int
   , iCenterOrigin :: KeyState Int
   , iAccelReset :: KeyState Int
   , iFaster :: KeyState Int
@@ -27,6 +28,6 @@ data Input = Input
   } deriving (Show, Eq)
 
 initInput :: Input
-initInput = Input a a a a a a a a a a a a a (V2 0 0) a a a a a False
+initInput = Input a a a a a a a a a a a a a (V2 0 0) a a a a a a False
   where
     a = initKeyState
