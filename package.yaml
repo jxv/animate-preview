@@ -8,7 +8,7 @@ description: .
 maintainer: Joe Vargas
 copyright: 2018 Joe Vargas
 data-files:
-- resource/Retroscape.ttf
+- resource/ProggyClean.ttf
 extra-source-files:
 - package.yaml
 - README.md

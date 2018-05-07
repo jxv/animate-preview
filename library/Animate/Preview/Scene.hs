@@ -67,7 +67,7 @@ updateScale = do
   let up = onceThenFire (iScaleUp input) || iScaleMouseUp input > 0
   let down = onceThenFire (iScaleDown input) || iScaleMouseDown input > 0
   let reset = isPressed (iScaleReset input) || isPressed (iMouseMiddleClick input)
-  let increment = replicate (max 1 (iScaleMouseUp input)) (incrementScalar 80)
+  let increment = replicate (max 1 (iScaleMouseUp input)) (incrementScalar 90)
   let decrement = replicate (max 1 (iScaleMouseDown input)) (decrementScalar 9)
   let change s
         | reset = Scalar'None
@@ -122,3 +122,5 @@ drawScene = do
   case origin of
     Nothing -> return ()
     Just origin' -> drawCrosshair (x,y) origin'
+  -- HUD
+  drawText (0,0) "Hello, World!"

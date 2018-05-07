@@ -10,6 +10,7 @@ import Control.Monad.IO.Class (MonadIO(..))
 import Data.Maybe (fromMaybe)
 import Data.StateVar (($=))
 import Foreign.C.Types (CFloat(..))
+import Data.Text (Text)
 
 import Animate.Preview.Config
 import Animate.Preview.Resource
@@ -67,6 +68,15 @@ class Monad m => Renderer m where
       let color' = fromColor color
       Gfx.horizontalLine ren (fromIntegral <$> V2 (x - radius) y) diameter color'
       Gfx.verticalLine ren (fromIntegral <$> V2 x (y - radius)) diameter color'
+
+  drawText :: (Int, Int) -> Text -> m ()
+  default drawText :: (SDLRenderer m, R m, MonadIO m) => (Int, Int) -> Text -> m ()
+  drawText xy text = do
+    ren <- asks cRenderer
+    font <- asks (rFont . cResources)
+    tex <- liftIO $ createText ren font text
+    drawTextureSprite (const tex) xy
+    SDL.destroyTexture tex
 
 ----
 
