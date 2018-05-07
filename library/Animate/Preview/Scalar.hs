@@ -12,11 +12,23 @@ scalarToSeconds = \case
   Scalar'Down n -> 1 - (0.1 * fromIntegral n)
   Scalar'Up n -> 1 + (0.5 * fromIntegral n)
 
+asSpeedString :: Scalar -> String
+asSpeedString = \case
+  Scalar'None -> "1x"
+  Scalar'Down n -> "0." ++ show (10 - n) ++ "x"
+  Scalar'Up n -> show (n `div` 2 + 1) ++ "." ++ (if mod n 2 == 0 then  "0" else "5") ++ "x"
+
 scalarToSpriteScale :: Scalar -> Float
 scalarToSpriteScale = \case
   Scalar'None -> 1
   Scalar'Down n -> 1 - (0.1 * fromIntegral n)
   Scalar'Up n -> 1 + (0.1 * fromIntegral n)
+
+asScaleString :: Scalar -> String
+asScaleString = \case
+  Scalar'None -> "1x"
+  Scalar'Down n -> "0." ++ show (10 - n) ++ "x"
+  Scalar'Up n -> show (n `div` 10 + 1) ++ "." ++ show (mod n 10) ++ "x"
 
 incrementScalar :: Int -> Scalar -> Scalar
 incrementScalar upper = \case

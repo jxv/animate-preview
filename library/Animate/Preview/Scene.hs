@@ -29,6 +29,7 @@ class Monad m => Scene m where
     updateOrigin
     updateSpeed
     updateScale
+    updateInfo
     updateAnimation
     drawScene
 
@@ -49,7 +50,7 @@ updateSpeed = do
   let reset = isPressed (iAccelReset input)
   let change s
         | reset = Scalar'None
-        | up && not down = incrementScalar 16 s
+        | up && not down = incrementScalar 18 s
         | down && not up = decrementScalar 9 s
         | otherwise = s
   modify $ \v -> v { vAccel = change (vAccel v) }
@@ -62,7 +63,12 @@ counterGreater n ks = case ksCounter ks of
   Nothing -> False
   Just counter -> counter > n
 
-updateScale :: (S m, HasInput m, Logger m) => m ()
+updateInfo :: (S m, HasInput m) => m ()
+updateInfo = do
+  input <- getInput
+  when (onceThenFire $ iInfo input) $ modify $ \v -> v { vInfoShown = not (vInfoShown v) }
+
+updateScale :: (S m, HasInput m) => m ()
 updateScale = do
   input <- getInput
   let up = onceThenFire (iScaleUp input) || iScaleMouseUp input > 0
@@ -115,6 +121,8 @@ drawScene = do
   dinoPos <- gets vDinoPos
   origin <- gets vOrigin
   outline <- gets vOutline
+  accel <- gets vAccel
+  infoShown <- gets vInfoShown
   dinoAnimations <- getDinoAnimations
   let dinoLoc = Animate.currentLocation dinoAnimations dinoPos
   scale <- gets vScale
@@ -124,5 +132,10 @@ drawScene = do
     Nothing -> return ()
     Just origin' -> drawCrosshair (x,y) origin'
   -- HUD
-  settings <- asks cSettings
-  drawText (0,0) (toText $ sJSON settings)
+  when infoShown $ do
+    settings <- asks cSettings
+    drawText (0, lineSpacing * 0) ("File: " `mappend` toText (sJSON settings))
+    drawText (0, lineSpacing * 1) ("Scale: " `mappend` toText (asScaleString scale))
+    drawText (0, lineSpacing * 2) ("Speed: " `mappend` toText (asSpeedString accel))
+  where
+    lineSpacing = 14

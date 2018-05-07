@@ -22,6 +22,7 @@ data Vars = Vars
   , vCenter :: V2 Int
   , vAccel :: Scalar
   , vScale :: Scalar
+  , vInfoShown :: Bool
   } deriving (Show, Eq)
 
 initVars :: V2 Int -> Vars
@@ -34,6 +35,7 @@ initVars center = Vars
   , vCenter = center
   , vAccel = Scalar'None
   , vScale = Scalar'None
+  , vInfoShown = True
   }
 
 makeClassy ''Vars
