@@ -2,7 +2,9 @@ module Animate.Preview.ManagerInput where
 
 import qualified SDL
 import Control.Monad.State
+import Control.Lens (view)
 import KeyState
+import Linear
 
 import Animate.Preview.Input
 import Animate.Preview.SDLInput
@@ -10,7 +12,7 @@ import Animate.Preview.State
 
 class Monad m => HasInput m where
   updateInput :: m ()
-  default updateInput :: (HasInput m, SDLInput m) => m ()
+  default updateInput :: (HasInput m, SDLInput m, MonadIO m) => m ()
   updateInput = do
     input <- getInput
     events <- pollEventPayloads
@@ -35,6 +37,8 @@ stepControl events (mouseClick, middleClick) i = i
   , iLeft = next [SDL.KeycodeLeft, SDL.KeycodeH] iLeft
   , iRight = next [SDL.KeycodeRight, SDL.KeycodeL] iRight
   , iScaleReset = next [SDL.KeycodeS] iScaleReset
+  , iScaleMouseUp = mouseEvent GT
+  , iScaleMouseDown = mouseEvent LT
   , iScaleUp = next [SDL.KeycodePlus, SDL.KeycodeEquals] iScaleUp
   , iScaleDown = next [SDL.KeycodeMinus] iScaleDown
   , iEscape = next [SDL.KeycodeEscape] iEscape
@@ -52,6 +56,16 @@ stepControl events (mouseClick, middleClick) i = i
   }
   where
     next xs f = nextKeystate events 1 xs (f i)
+    mouseEvent ordering = fromIntegral $ maximum $ (0:) $ flip map events $ \case
+      SDL.MouseWheelEvent dat -> let
+        scrollAmount = view _y $ SDL.mouseWheelEventPos dat
+        threshold = 0
+        in if abs scrollAmount > threshold
+          then case SDL.mouseWheelEventDirection dat of
+            SDL.ScrollNormal -> if compare scrollAmount 0 == ordering then abs scrollAmount else 0
+            SDL.ScrollFlipped -> if compare 0 scrollAmount == ordering then abs scrollAmount else 0
+          else 0
+      _ -> 0
 
 nextKeystate :: [SDL.EventPayload] -> Int -> [SDL.Keycode] -> KeyState Int -> KeyState Int
 nextKeystate events count keycodes keystate

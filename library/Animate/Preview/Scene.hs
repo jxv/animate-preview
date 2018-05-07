@@ -61,18 +61,23 @@ counterGreater n ks = case ksCounter ks of
   Nothing -> False
   Just counter -> counter > n
 
-updateScale :: (S m, HasInput m) => m ()
+updateScale :: (S m, HasInput m, Logger m) => m ()
 updateScale = do
   input <- getInput
-  let up = onceThenFire (iScaleUp input) 
-  let down = onceThenFire (iScaleDown input)
+  let up = onceThenFire (iScaleUp input) || iScaleMouseUp input > 0
+  let down = onceThenFire (iScaleDown input) || iScaleMouseDown input > 0
   let reset = isPressed (iScaleReset input) || isPressed (iMouseMiddleClick input)
+  let increment = replicate (max 1 (iScaleMouseUp input)) (incrementScalar 80)
+  let decrement = replicate (max 1 (iScaleMouseDown input)) (decrementScalar 9)
   let change s
         | reset = Scalar'None
-        | up && not down = incrementScalar 80 s
-        | down && not up = decrementScalar 9 s
+        | up && not down = fapply increment s
+        | down && not up = fapply decrement s
         | otherwise = s
   modify $ \v -> v { vScale = change (vScale v) }
+
+fapply :: [a -> a] -> a -> a
+fapply xs a = case xs of [] -> a; (y:ys) -> fapply ys (y a)
 
 updateOrigin :: (R m, S m, HasInput m) => m ()
 updateOrigin = do
