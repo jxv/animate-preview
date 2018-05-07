@@ -173,8 +173,8 @@ drawScene = do
   -- HUD
   when infoShown $ do
     settings <- asks cSettings
-    drawText (0, lineSpacing * 0) ("Mode: " `mappend` if mode == Mode'Playback then "Playback" else "Stepper")
-    drawText (0, lineSpacing * 1) ("File: " `mappend` toText (sJSON settings))
+    drawText (0, lineSpacing * 0) ("Mode:  " `mappend` if mode == Mode'Playback then "Playback" else "Stepper")
+    drawText (0, lineSpacing * 1) ("File:  " `mappend` toText (sJSON settings))
     drawText (0, lineSpacing * 2) ("Scale: " `mappend` toText (asScaleString scale))
     drawText (0, lineSpacing * 3) ("Accel: " `mappend` toText (asSpeedString accel))
     drawText (0, lineSpacing * 4) $ toText $ concat ["Pos: Frame ", show $ Animate.pFrameIndex dinoPos, " (", show $ Animate.pCounter dinoPos, ")"]
