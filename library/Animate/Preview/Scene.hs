@@ -5,6 +5,7 @@ import Control.Lens
 import Control.Monad (when)
 import Control.Monad.Reader (MonadReader(..), asks)
 import Control.Monad.State (MonadState(..), modify, gets)
+import Data.Text.Conversions (toText)
 import KeyState
 import Linear
 
@@ -123,4 +124,5 @@ drawScene = do
     Nothing -> return ()
     Just origin' -> drawCrosshair (x,y) origin'
   -- HUD
-  drawText (0,0) "Hello, World!"
+  settings <- asks cSettings
+  drawText (0,0) (toText $ sJSON settings)
