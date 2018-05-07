@@ -27,10 +27,11 @@ data Input = Input
   , iFaster :: KeyState Int
   , iSlower :: KeyState Int
   , iInfo :: KeyState Int
+  , iMode :: KeyState Int
   , iQuit :: Bool
   } deriving (Show, Eq)
 
 initInput :: Input
-initInput = Input a a a a a a 0 0 a a a a a a a (V2 0 0) a a a a a a a False
+initInput = Input a a a a a a 0 0 a a a a a a a (V2 0 0) a a a a a a a a False
   where
     a = initKeyState

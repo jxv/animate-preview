@@ -49,6 +49,7 @@ library:
     - text
     - text-conversions
     - random
+    - vector
   source-dirs: library
 executables:
   animate-preview:

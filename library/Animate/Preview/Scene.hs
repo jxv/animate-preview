@@ -1,6 +1,7 @@
 module Animate.Preview.Scene where
 
 import qualified Animate
+import qualified Data.Vector as V
 import Control.Lens
 import Control.Monad (when)
 import Control.Monad.Reader (MonadReader(..), asks)
@@ -20,11 +21,13 @@ import Animate.Preview.ManagerInput
 import Animate.Preview.Color
 import Animate.Preview.Logger
 import Animate.Preview.Scalar
+import Animate.Preview.Mode
 
 class Monad m => Scene m where
   sceneStep :: m ()
   default sceneStep :: (R m, S m, Renderer m, HasInput m, Logger m) => m ()
   sceneStep = do
+    updateMode
     toggleVisuals
     updateOrigin
     updateSpeed
@@ -33,27 +36,62 @@ class Monad m => Scene m where
     updateAnimation
     drawScene
 
+updateMode :: (S m, HasInput m) => m ()
+updateMode = do
+  input <- getInput
+  when (onceThenFire $ iMode input) $ modify $ \v -> v { vMode = if vMode v == Mode'Playback then Mode'Stepper else Mode'Playback }
+
 updateAnimation :: (R m, S m, Renderer m, HasInput m) => m ()
 updateAnimation = do
+  mode <- gets vMode
   dinoAnimations <- getDinoAnimations
   dinoPos <- gets vDinoPos
-  accel <- gets vAccel
-  let accelScalar = scalarToSeconds accel
-  let dinoPos' = Animate.stepPosition dinoAnimations dinoPos (frameDeltaSeconds * (Seconds accelScalar))
-  modify $ \v -> v { vDinoPos = dinoPos' }
+  case mode of
+    Mode'Stepper -> do
+      input <- getInput
+      when (onceThenFire $ iFaster input) $ modify $ \v -> v { vDinoPos = forceNextFrameIndex dinoAnimations dinoPos }
+      when (onceThenFire $ iSlower input) $ modify $ \v -> v { vDinoPos = forcePrevFrameIndex dinoAnimations dinoPos }
+    Mode'Playback -> do
+      accel <- gets vAccel
+      let accelScalar = scalarToSeconds accel
+      let dinoPos' = Animate.stepPosition dinoAnimations dinoPos (frameDeltaSeconds * (Seconds accelScalar))
+      modify $ \v -> v { vDinoPos = dinoPos' }
+
+unsafeForceNextFrameIndex :: V.Vector (Animate.Frame loc delay) -> Animate.FrameIndex -> Animate.FrameIndex
+unsafeForceNextFrameIndex frames idx = if idx + 1 >= len then 0 else idx + 1
+  where len = V.length frames
+
+unsafeForcePrevFrameIndex :: V.Vector (Animate.Frame loc delay) -> Animate.FrameIndex -> Animate.FrameIndex
+unsafeForcePrevFrameIndex frames idx = if idx <= 0 then len - 1 else idx - 1
+  where len = V.length frames
+
+forceNextFrameIndex :: Enum key => Animate.Animations key loc delay -> Animate.Position key delay -> Animate.Position key delay
+forceNextFrameIndex a p = p { Animate.pFrameIndex = unsafeForceNextFrameIndex frames (Animate.pFrameIndex p) }
+  where
+    frames = Animate.framesByAnimation a (Animate.pKey p)
+
+forcePrevFrameIndex :: Enum key => Animate.Animations key loc delay -> Animate.Position key delay -> Animate.Position key delay
+forcePrevFrameIndex a p = p { Animate.pFrameIndex = unsafeForcePrevFrameIndex frames (Animate.pFrameIndex p) }
+  where
+    frames = Animate.framesByAnimation a (Animate.pKey p)
+
 
 updateSpeed :: (S m, HasInput m) => m ()
 updateSpeed = do
   input <- getInput
-  let up = onceThenFire (iFaster input) 
-  let down = onceThenFire (iSlower input)
-  let reset = isPressed (iAccelReset input)
-  let change s
-        | reset = Scalar'None
-        | up && not down = incrementScalar 18 s
-        | down && not up = decrementScalar 9 s
-        | otherwise = s
-  modify $ \v -> v { vAccel = change (vAccel v) }
+  mode <- gets vMode
+  case mode of
+    Mode'Stepper -> return ()
+    Mode'Playback ->  do
+      let up = onceThenFire (iFaster input) 
+      let down = onceThenFire (iSlower input)
+      let reset = isPressed (iAccelReset input)
+      let change s
+            | reset = Scalar'None
+            | up && not down = incrementScalar 18 s
+            | down && not up = decrementScalar 9 s
+            | otherwise = s
+      modify $ \v -> v { vAccel = change (vAccel v) }
 
 onceThenFire :: KeyState Int -> Bool
 onceThenFire ks = isPressed ks || (isHeld ks && counterGreater 20 ks)
@@ -122,6 +160,7 @@ drawScene = do
   origin <- gets vOrigin
   outline <- gets vOutline
   accel <- gets vAccel
+  mode <- gets vMode
   infoShown <- gets vInfoShown
   dinoAnimations <- getDinoAnimations
   let dinoLoc = Animate.currentLocation dinoAnimations dinoPos
@@ -134,9 +173,10 @@ drawScene = do
   -- HUD
   when infoShown $ do
     settings <- asks cSettings
-    drawText (0, lineSpacing * 0) ("File: " `mappend` toText (sJSON settings))
-    drawText (0, lineSpacing * 1) ("Scale: " `mappend` toText (asScaleString scale))
-    drawText (0, lineSpacing * 2) ("Speed: " `mappend` toText (asSpeedString accel))
-    drawText (0, lineSpacing * 3) $ toText $ concat ["Position: ", show $ Animate.pFrameIndex dinoPos, " (", show $ Animate.pCounter dinoPos, ")"]
+    drawText (0, lineSpacing * 0) ("Mode: " `mappend` if mode == Mode'Playback then "Playback" else "Stepper")
+    drawText (0, lineSpacing * 1) ("File: " `mappend` toText (sJSON settings))
+    drawText (0, lineSpacing * 2) ("Scale: " `mappend` toText (asScaleString scale))
+    drawText (0, lineSpacing * 3) ("Accel: " `mappend` toText (asSpeedString accel))
+    drawText (0, lineSpacing * 4) $ toText $ concat ["Pos: Frame ", show $ Animate.pFrameIndex dinoPos, " (", show $ Animate.pCounter dinoPos, ")"]
   where
     lineSpacing = 14

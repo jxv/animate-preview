@@ -12,6 +12,7 @@ import Animate.Preview.Dino
 import Animate.Preview.Input
 import Animate.Preview.Color
 import Animate.Preview.Scalar
+import Animate.Preview.Mode
 
 data Vars = Vars
   { vInput :: Input
@@ -23,6 +24,7 @@ data Vars = Vars
   , vAccel :: Scalar
   , vScale :: Scalar
   , vInfoShown :: Bool
+  , vMode :: Mode
   } deriving (Show, Eq)
 
 initVars :: V2 Int -> Vars
@@ -36,6 +38,7 @@ initVars center = Vars
   , vAccel = Scalar'None
   , vScale = Scalar'None
   , vInfoShown = True
+  , vMode = Mode'Playback
   }
 
 makeClassy ''Vars

@@ -53,6 +53,7 @@ stepControl events (mouseClick, middleClick) i = i
   , iSlower = next [SDL.KeycodeD] iSlower
   , iAccelReset = next [SDL.KeycodeA] iAccelReset
   , iInfo = next [SDL.KeycodeI] iInfo
+  , iMode = next [SDL.KeycodeM] iMode
   , iQuit = elem SDL.QuitEvent events
   }
   where
