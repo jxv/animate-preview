@@ -11,6 +11,7 @@ import Data.Text (Text)
 import Data.Text.Conversions (toText)
 import Data.StateVar (($=))
 import SDL.Vect
+import System.IO.Error (catchIOError)
 import Paths_animate_preview (getDataFileName)
 
 import Animate.Preview.Animation
@@ -28,6 +29,22 @@ convertSurface (SDL.Surface s _) pixFmt = do
   fmt <- Raw.allocFormat (Numbered.toNumber pixFmt)
   surface <- SDL.Surface <$> Raw.convertSurface s fmt 0 <*> pure Nothing
   surface <$ Raw.freeFormat fmt
+
+loadSurface' :: FilePath -> Maybe Animate.Color -> IO (Maybe SDL.Surface)
+loadSurface' path alpha = do
+  surface0' <- catchIOError
+    (Just <$> Image.load path)
+    (const $ return Nothing)
+  case surface0' of
+    Nothing -> return Nothing
+    Just surface0 -> do
+      surface <- convertSurface surface0 SDL.RGBA8888
+      SDL.freeSurface surface0
+      case alpha of
+        Just (r,g,b) -> SDL.surfaceColorKey surface $= (Just $ V4 r g b 0x00)
+        Nothing -> return ()
+      return (Just surface)
+
 
 loadSurface :: FilePath -> Maybe Animate.Color -> IO SDL.Surface
 loadSurface path alpha = do

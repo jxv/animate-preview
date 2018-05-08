@@ -63,17 +63,13 @@ main = do
   window <- SDL.createWindow "Animate Preview" SDL.defaultWindow { SDL.windowInitialSize = fromIntegral <$> windowSize }
   renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
   resources <- loadResources renderer
-
---  ss <- Animate.readSpriteSheetInfoJSON "resource/dino.json" :: IO (Animate.SpriteSheetInfo Int Seconds)
---  print ss
-
   let cfg = Config
         { cWindow = window
         , cRenderer = renderer
         , cResources = resources
         , cWinSize = windowSize
         , cSettings = settings }
-  runAnimatePreview cfg (initVars windowCenter) mainLoop
+  runAnimatePreview cfg (initVars windowCenter) (load >> mainLoop)
   SDL.destroyWindow window
   freeResources resources
   Mixer.closeAudio

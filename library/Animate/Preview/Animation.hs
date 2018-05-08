@@ -6,7 +6,6 @@ import Text.Printf (printf)
 import Data.Aeson (FromJSON, ToJSON)
 
 type Animations key = Animate.Animations key (Animate.SpriteClip key) Seconds
-type DrawSprite key m = Animate.SpriteClip key -> (Int, Int) -> m ()
 
 newtype Seconds = Seconds Float
   deriving (Eq, Num, ToJSON, FromJSON, Fractional, Ord)

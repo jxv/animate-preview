@@ -177,6 +177,6 @@ drawScene = do
     drawText (0, lineSpacing * 1) ("File:  " `mappend` toText (sJSON settings))
     drawText (0, lineSpacing * 2) ("Scale: " `mappend` toText (asScaleString scale))
     drawText (0, lineSpacing * 3) ("Accel: " `mappend` toText (asSpeedString accel))
-    drawText (0, lineSpacing * 4) $ toText $ concat ["Pos: Frame ", show $ Animate.pFrameIndex dinoPos, " (", show $ Animate.pCounter dinoPos, ")"]
+    drawText (0, lineSpacing * 4) $ toText $ concat ["Pos:   Frame ", show $ Animate.pFrameIndex dinoPos, " (", show $ Animate.pCounter dinoPos, ")"]
   where
-    lineSpacing = 14
+    lineSpacing = 12

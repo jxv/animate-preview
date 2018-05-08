@@ -50,12 +50,12 @@ class Monad m => Renderer m where
       liftIO $ Gfx.fillRectangle renderer (fromIntegral <$> a) (fromIntegral <$> b) c
 
 
-  getDinoAnimations :: m (Animations DinoKey)
-  default getDinoAnimations :: (SDLRenderer m, R m) => m (Animations DinoKey)
+  getDinoAnimations :: m (Animate.Animations DinoKey (Animate.SpriteClip DinoKey) Seconds)
+  default getDinoAnimations :: (SDLRenderer m, R m) => m (Animate.Animations DinoKey (Animate.SpriteClip DinoKey) Seconds)
   getDinoAnimations = getSpriteAnimations (rDinoSprites . cResources)
 
-  drawDino :: Maybe Color -> Float -> DrawSprite DinoKey m
-  default drawDino :: (SDLRenderer m, R m, MonadIO m) => Maybe Color -> Float -> DrawSprite DinoKey m
+  drawDino :: Maybe Color -> Float -> Animate.SpriteClip DinoKey -> (Int, Int) -> m ()
+  default drawDino :: (SDLRenderer m, R m, MonadIO m) => Maybe Color -> Float -> Animate.SpriteClip DinoKey -> (Int, Int) -> m ()
   drawDino = drawSprite (rDinoSprites . cResources)
 
   drawCrosshair :: (Int, Int) -> Color -> m ()
