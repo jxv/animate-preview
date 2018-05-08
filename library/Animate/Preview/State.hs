@@ -10,21 +10,19 @@ import Control.Monad.State (MonadState)
 import Linear
 
 import Animate.Preview.Animation
-import Animate.Preview.Dino
 import Animate.Preview.Input
 import Animate.Preview.Color
 import Animate.Preview.Scalar
 import Animate.Preview.Mode
 
 data Loaded = Loaded
-  { lsTextToInt :: Text -> Maybe Int
-  , lsIntToText :: Int -> Text
-  , lsSpriteSheet :: Animate.SpriteSheet Int SDL.Texture Seconds
+  { lTextToInt :: Text -> Maybe Int
+  , lIntToText :: Int -> Text
+  , lSpriteSheet :: Animate.SpriteSheet Int SDL.Texture Seconds
   }
 
 data Vars = Vars
   { vInput :: Input
-  , vDinoPos :: Animate.Position DinoKey Seconds
   , vBackground :: Mono
   , vOrigin :: Maybe Color
   , vOutline :: Maybe Color
@@ -40,7 +38,6 @@ data Vars = Vars
 initVars :: V2 Int -> Vars
 initVars center = Vars
   { vInput = initInput
-  , vDinoPos = Animate.initPosition DinoKey'Idle
   , vBackground = Mono'Gray
   , vOrigin = Just Color'Red
   , vOutline = Just Color'Green

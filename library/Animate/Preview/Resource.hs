@@ -14,12 +14,8 @@ import SDL.Vect
 import System.IO.Error (catchIOError)
 import Paths_animate_preview (getDataFileName)
 
-import Animate.Preview.Animation
-import Animate.Preview.Dino
-
 data Resources = Resources
-  { rDinoSprites :: Animate.SpriteSheet DinoKey SDL.Texture Seconds
-  , rFont :: Font.Font
+  { rFont :: Font.Font
   }
 
 -- | Produce a new 'SDL.Surface' based on an existing one, but
@@ -45,17 +41,6 @@ loadSurface' path alpha = do
         Nothing -> return ()
       return (Just surface)
 
-
-loadSurface :: FilePath -> Maybe Animate.Color -> IO SDL.Surface
-loadSurface path alpha = do
-  surface0 <- Image.load path
-  surface <- convertSurface surface0 SDL.RGBA8888
-  SDL.freeSurface surface0
-  case alpha of
-    Just (r,g,b) -> SDL.surfaceColorKey surface $= (Just $ V4 r g b 0x00)
-    Nothing -> return ()
-  return surface
-
 alphaColorDef :: Animate.Color
 alphaColorDef = (0xff,0x00,0xff)
 
@@ -73,18 +58,13 @@ createText ren font text = do
   return tex
 
 loadResources :: SDL.Renderer -> IO Resources
-loadResources renderer = do
+loadResources _renderer = do
   fileName <- getDataFileName "resource/ProggyClean.ttf"
   font <- Font.load fileName 16
-  dinoSprites <- Animate.readSpriteSheetJSON loadTexture "resource/dino.json" :: IO (Animate.SpriteSheet DinoKey SDL.Texture Seconds)
   return Resources
-    { rDinoSprites = dinoSprites
-    , rFont = font
+    { rFont = font
     }
-  where
-    loadTexture path c = SDL.createTextureFromSurface renderer =<< loadSurface path c
 
 freeResources :: Resources -> IO ()
 freeResources r = do
-  SDL.destroyTexture $ Animate.ssImage (rDinoSprites r)
   Font.free (rFont r)

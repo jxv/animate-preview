@@ -2,10 +2,9 @@ module Animate.Preview.Scene where
 
 import qualified Animate
 import qualified Data.Vector as V
-import Control.Lens
 import Control.Monad (when)
-import Control.Monad.Reader (MonadReader(..), asks)
-import Control.Monad.State (MonadState(..), modify, gets)
+import Control.Monad.Reader (asks)
+import Control.Monad.State (modify, gets)
 import Data.Text.Conversions (toText)
 import KeyState
 import Linear
@@ -15,7 +14,6 @@ import Animate.Preview.Config
 import Animate.Preview.Renderer
 import Animate.Preview.Input
 import Animate.Preview.Frame
-import Animate.Preview.Dino
 import Animate.Preview.State
 import Animate.Preview.ManagerInput
 import Animate.Preview.Color
@@ -44,18 +42,22 @@ updateMode = do
 updateAnimation :: (R m, S m, Renderer m, HasInput m) => m ()
 updateAnimation = do
   mode <- gets vMode
-  dinoAnimations <- getDinoAnimations
-  dinoPos <- gets vDinoPos
-  case mode of
-    Mode'Stepper -> do
-      input <- getInput
-      when (onceThenFire $ iFaster input) $ modify $ \v -> v { vDinoPos = forceNextFrameIndex dinoAnimations dinoPos }
-      when (onceThenFire $ iSlower input) $ modify $ \v -> v { vDinoPos = forcePrevFrameIndex dinoAnimations dinoPos }
-    Mode'Playback -> do
-      accel <- gets vAccel
-      let accelScalar = scalarToSeconds accel
-      let dinoPos' = Animate.stepPosition dinoAnimations dinoPos (frameDeltaSeconds * (Seconds accelScalar))
-      modify $ \v -> v { vDinoPos = dinoPos' }
+  loaded' <- gets vLoaded 
+  case loaded' of
+    Nothing -> return ()
+    Just loaded -> do
+      let animations = (Animate.ssAnimations . lSpriteSheet) loaded
+      pos <- gets vPos
+      case mode of
+        Mode'Stepper -> do
+          input <- getInput
+          when (onceThenFire $ iFaster input) $ modify $ \v -> v { vPos = forceNextFrameIndex animations pos }
+          when (onceThenFire $ iSlower input) $ modify $ \v -> v { vPos = forcePrevFrameIndex animations pos }
+        Mode'Playback -> do
+          accel <- gets vAccel
+          let accelScalar = scalarToSeconds accel
+          let pos' = Animate.stepPosition animations pos (frameDeltaSeconds * (Seconds accelScalar))
+          modify $ \v -> v { vPos = pos' }
 
 unsafeForceNextFrameIndex :: V.Vector (Animate.Frame loc delay) -> Animate.FrameIndex -> Animate.FrameIndex
 unsafeForceNextFrameIndex frames idx = if idx + 1 >= len then 0 else idx + 1
@@ -74,7 +76,6 @@ forcePrevFrameIndex :: Enum key => Animate.Animations key loc delay -> Animate.P
 forcePrevFrameIndex a p = p { Animate.pFrameIndex = unsafeForcePrevFrameIndex frames (Animate.pFrameIndex p) }
   where
     frames = Animate.framesByAnimation a (Animate.pKey p)
-
 
 updateSpeed :: (S m, HasInput m) => m ()
 updateSpeed = do
@@ -156,17 +157,23 @@ toggleVisuals = do
 drawScene :: (R m, S m, Renderer m, HasInput m) => m ()
 drawScene = do
   V2 x y <- gets vCenter
-  dinoPos <- gets vDinoPos
+  pos <- gets vPos
   origin <- gets vOrigin
   outline <- gets vOutline
   accel <- gets vAccel
   mode <- gets vMode
   infoShown <- gets vInfoShown
-  dinoAnimations <- getDinoAnimations
-  let dinoLoc = Animate.currentLocation dinoAnimations dinoPos
   scale <- gets vScale
-  let scalar = scalarToSpriteScale scale
-  drawDino outline scalar dinoLoc (x, y)
+  loaded' <- gets vLoaded 
+  case loaded' of
+    Nothing -> return ()
+    Just loaded -> do
+      let animations = (Animate.ssAnimations . lSpriteSheet) loaded
+      let loc = Animate.currentLocation animations pos
+      let scalar = scalarToSpriteScale scale
+      drawAniSprite (lSpriteSheet loaded) outline scalar loc (x, y)
+      when infoShown $ do
+        drawText (0, lineSpacing * 4) $ toText $ concat ["Pos:   Frame ", show $ Animate.pFrameIndex pos, " (", show $ Animate.pCounter pos, ")"]
   case origin of
     Nothing -> return ()
     Just origin' -> drawCrosshair (x,y) origin'
@@ -177,6 +184,5 @@ drawScene = do
     drawText (0, lineSpacing * 1) ("File:  " `mappend` toText (sJSON settings))
     drawText (0, lineSpacing * 2) ("Scale: " `mappend` toText (asScaleString scale))
     drawText (0, lineSpacing * 3) ("Accel: " `mappend` toText (asSpeedString accel))
-    drawText (0, lineSpacing * 4) $ toText $ concat ["Pos:   Frame ", show $ Animate.pFrameIndex dinoPos, " (", show $ Animate.pCounter dinoPos, ")"]
   where
     lineSpacing = 12

@@ -15,7 +15,6 @@ import Data.Text (Text)
 import Animate.Preview.Config
 import Animate.Preview.Resource
 import Animate.Preview.Animation
-import Animate.Preview.Dino
 import Animate.Preview.Color
 import Animate.Preview.SDLRenderer
 
@@ -48,15 +47,10 @@ class Monad m => Renderer m where
           return (V2 x0 y0, V2 x1 y1, color) 
     flip mapM_ indices $ \(a,b,c) ->
       liftIO $ Gfx.fillRectangle renderer (fromIntegral <$> a) (fromIntegral <$> b) c
-
-
-  getDinoAnimations :: m (Animate.Animations DinoKey (Animate.SpriteClip DinoKey) Seconds)
-  default getDinoAnimations :: (SDLRenderer m, R m) => m (Animate.Animations DinoKey (Animate.SpriteClip DinoKey) Seconds)
-  getDinoAnimations = getSpriteAnimations (rDinoSprites . cResources)
-
-  drawDino :: Maybe Color -> Float -> Animate.SpriteClip DinoKey -> (Int, Int) -> m ()
-  default drawDino :: (SDLRenderer m, R m, MonadIO m) => Maybe Color -> Float -> Animate.SpriteClip DinoKey -> (Int, Int) -> m ()
-  drawDino = drawSprite (rDinoSprites . cResources)
+  
+  drawAniSprite :: Animate.SpriteSheet Int SDL.Texture Seconds -> Maybe Color -> Float -> Animate.SpriteClip Int -> (Int, Int) -> m ()
+  default drawAniSprite :: (SDLRenderer m, R m, MonadIO m) => Animate.SpriteSheet Int SDL.Texture Seconds -> Maybe Color -> Float -> Animate.SpriteClip Int -> (Int, Int) -> m ()
+  drawAniSprite as = drawSprite (const as)
 
   drawCrosshair :: (Int, Int) -> Color -> m ()
   default drawCrosshair :: (MonadIO m, R m) => (Int, Int) -> Color -> m ()
