@@ -9,6 +9,8 @@ data Input = Input
   , iDown :: KeyState Int
   , iLeft :: KeyState Int
   , iRight :: KeyState Int
+  , iPrevKeyFrame :: KeyState Int
+  , iNextKeyFrame :: KeyState Int
   , iScaleReset :: KeyState Int
   , iScaleMouseUp :: Int
   , iScaleMouseDown :: Int
@@ -32,6 +34,6 @@ data Input = Input
   } deriving (Show, Eq)
 
 initInput :: Input
-initInput = Input a a a a a a 0 0 a a a a a a a (V2 0 0) a a a a a a a a False
+initInput = Input a a a a a a a a 0 0 a a a a a a a (V2 0 0) a a a a a a a a False
   where
     a = initKeyState

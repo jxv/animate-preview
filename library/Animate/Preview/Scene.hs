@@ -5,7 +5,7 @@ import qualified Data.Vector as V
 import Control.Monad (when)
 import Control.Monad.Reader (asks)
 import Control.Monad.State (modify, gets)
-import Data.Text.Conversions (toText)
+import Data.Text.Conversions (toText, fromText)
 import KeyState
 import Linear
 
@@ -30,11 +30,31 @@ class Monad m => Scene m where
     updateReload
     toggleVisuals
     updateOrigin
+    updateKeyFrame
     updateSpeed
     updateScale
     updateInfo
     updateAnimation
     drawScene
+
+updateKeyFrame :: (S m, HasInput m) => m ()
+updateKeyFrame = do
+  input <- getInput
+  loaded' <- gets vLoaded 
+  case loaded' of
+    Nothing -> return ()
+    Just loaded -> do
+      let animations = (Animate.ssAnimations . lSpriteSheet) loaded
+      when (isPressed $ iNextKeyFrame input) $ modify $ \v ->
+        v { vPos = Animate.initPosition $ unsafeNextKey (Animate.pKey $ vPos v) animations }
+      when (isPressed $ iPrevKeyFrame input) $ modify $ \v ->
+        v { vPos = Animate.initPosition $ unsafePrevKey (Animate.pKey $ vPos v) animations }
+
+unsafeNextKey :: Int -> Animate.Animations a b c -> Int
+unsafeNextKey n (Animate.Animations a) = (1 + n) `mod` (V.length a)
+
+unsafePrevKey :: Int -> Animate.Animations a b c -> Int
+unsafePrevKey n (Animate.Animations a) = (n - 1) `mod` (V.length a)
 
 updateMode :: (S m, HasInput m) => m ()
 updateMode = do
@@ -182,7 +202,9 @@ drawScene = do
       let scalar = scalarToSpriteScale scale
       drawAniSprite (lSpriteSheet loaded) outline scalar loc (x, y)
       when infoShown $ do
-        drawText (0, lineSpacing * 4) $ toText $ concat ["Pos:   Frame ", show $ Animate.pFrameIndex pos, " (", show $ Animate.pCounter pos, ")"]
+        let keyName = lIntToText loaded (Animate.pKey pos)
+        drawText (0, lineSpacing * 4) $ toText $ concat ["Key:   \"", fromText keyName, "\" (", show $ Animate.pKey pos, "/", show $ lTotalKeys loaded, ")"]
+        drawText (0, lineSpacing * 5) $ toText $ concat ["Pos:   Frame ", show $ Animate.pFrameIndex pos, " (", show $ Animate.pCounter pos, ")"]
   case origin of
     Nothing -> return ()
     Just origin' -> drawCrosshair (x,y) origin'

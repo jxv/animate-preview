@@ -59,7 +59,8 @@ class Monad m => Loader m where
                         (frameIdx, delay) <- frames
                         return $ Animate.Frame (Animate.ssiClips ssi' !! frameIdx) delay
                 let spriteSheet = Animate.SpriteSheet animations' tex
-                let loaded = Loaded textToInt intToText spriteSheet
+                let totalKeys = V.length $ Animate.unAnimations animations'
+                let loaded = Loaded textToInt intToText spriteSheet totalKeys
                 modify $ \v -> v { vLoaded = Just loaded }
                 logText $ "Loaded: " `mappend` toText json
                 return True

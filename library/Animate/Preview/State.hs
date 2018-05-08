@@ -19,6 +19,7 @@ data Loaded = Loaded
   { lTextToInt :: Text -> Maybe Int
   , lIntToText :: Int -> Text
   , lSpriteSheet :: Animate.SpriteSheet Int SDL.Texture Seconds
+  , lTotalKeys :: Int
   }
 
 data Vars = Vars
