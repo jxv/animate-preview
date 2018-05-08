@@ -21,6 +21,7 @@ import SDL.Vect
 import Animate.Preview.Config
 import Animate.Preview.Clock
 import Animate.Preview.Logger
+import Animate.Preview.Loader
 import Animate.Preview.Renderer
 import Animate.Preview.SDLInput
 import Animate.Preview.SDLRenderer
@@ -90,3 +91,4 @@ instance SDLInput AnimatePreview
 instance HasInput AnimatePreview
 instance Renderer AnimatePreview
 instance Scene AnimatePreview
+instance Loader AnimatePreview

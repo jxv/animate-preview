@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c8c8628073441ca69a189d8db9b0ced4ab144e9dcc64de0352143b3c76719035
+-- hash: 3c160ea3a4486b26f96d228080bc973c3a234caa7f2d62ac7dc069fac5559f1c
 
 name:           animate-preview
 version:        0.0.0
@@ -67,6 +67,7 @@ library
       Animate.Preview.Config
       Animate.Preview.Frame
       Animate.Preview.Input
+      Animate.Preview.Loader
       Animate.Preview.Logger
       Animate.Preview.ManagerInput
       Animate.Preview.Mode

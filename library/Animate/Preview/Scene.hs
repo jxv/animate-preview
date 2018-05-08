@@ -20,12 +20,14 @@ import Animate.Preview.Color
 import Animate.Preview.Logger
 import Animate.Preview.Scalar
 import Animate.Preview.Mode
+import Animate.Preview.Loader
 
 class Monad m => Scene m where
   sceneStep :: m ()
-  default sceneStep :: (R m, S m, Renderer m, HasInput m, Logger m) => m ()
+  default sceneStep :: (R m, S m, Renderer m, HasInput m, Logger m, Loader m) => m ()
   sceneStep = do
     updateMode
+    updateReload
     toggleVisuals
     updateOrigin
     updateSpeed
@@ -38,6 +40,13 @@ updateMode :: (S m, HasInput m) => m ()
 updateMode = do
   input <- getInput
   when (onceThenFire $ iMode input) $ modify $ \v -> v { vMode = if vMode v == Mode'Playback then Mode'Stepper else Mode'Playback }
+
+updateReload :: (S m, HasInput m, Loader m) => m ()
+updateReload = do
+  input <- getInput
+  when (isPressed $ iReload input) $ do
+    _loaded <- load
+    return ()
 
 updateAnimation :: (R m, S m, Renderer m, HasInput m) => m ()
 updateAnimation = do
