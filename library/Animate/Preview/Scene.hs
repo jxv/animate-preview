@@ -199,7 +199,12 @@ drawScene = do
     Just loaded -> do
       let animations = (Animate.ssAnimations . lSpriteSheet) loaded
       let frames = Animate.framesByAnimation animations (Animate.pKey pos)
-      let frameDelay = Animate.fDelay $ frames V.! (Animate.pFrameIndex pos)
+      let frame = frames V.! Animate.pFrameIndex pos
+      let frameDelay = Animate.fDelay frame
+      let frameClip = Animate.fLocation frame
+      let (x0,y0) = (Animate.scX frameClip, Animate.scY frameClip)
+      let (w,h) = (Animate.scW frameClip, Animate.scH frameClip)
+      let (x1,y1) = (x0 + w, y0 + h)
       let framesLen = V.length frames
       let totalSeconds = sum $ map Animate.fDelay (V.toList frames)
       let loc = Animate.currentLocation animations pos
@@ -207,12 +212,17 @@ drawScene = do
       drawAniSprite (lSpriteSheet loaded) outline scalar loc (x, y)
       when infoShown $ do
         let keyName = lIntToText loaded (Animate.pKey pos)
-        drawText (ofsX, ofsY + lineSpacing * 4) $ toText $ concat ["Anim:"]
-        drawText (ofsX, ofsY + lineSpacing * 5) $ toText $ concat ["  Key: \"", fromText keyName, "\" ", show $ Animate.pKey pos, " / ", show $ lTotalKeys loaded - 1]
-        drawText (ofsX, ofsY + lineSpacing * 6) $ toText $ concat ["  Time: ", show totalSeconds]
-        drawText (ofsX, ofsY + lineSpacing * 7) $ toText $ concat ["Pos:"]
-        drawText (ofsX, ofsY + lineSpacing * 8) $ toText $ concat ["  Frame: ", show $ Animate.pFrameIndex pos,  " / ", show $ framesLen - 1]
-        drawText (ofsX, ofsY + lineSpacing * 9) $ toText $ concat ["  Time: ", show $ Animate.pCounter pos, " / ", show $ frameDelay]
+        drawText (ofsX, ofsY + lineSpacing * 4)  $ toText $ concat ["Anim:"]
+        drawText (ofsX, ofsY + lineSpacing * 5)  $ toText $ concat ["  Key: \"", fromText keyName, "\" ", show $ Animate.pKey pos, " [", show $ lTotalKeys loaded - 1, "]"]
+        drawText (ofsX, ofsY + lineSpacing * 6)  $ toText $ concat ["  Time: ", show totalSeconds]
+        drawText (ofsX, ofsY + lineSpacing * 7)  $ toText $ concat ["Pos:"]
+        drawText (ofsX, ofsY + lineSpacing * 8)  $ toText $ concat ["  Frame: ", show $ Animate.pFrameIndex pos,  " [", show $ framesLen - 1, "]"]
+        drawText (ofsX, ofsY + lineSpacing * 9)  $ toText $ concat ["  Time: ", show $ Animate.pCounter pos, " [", show $ frameDelay, "]"]
+        drawText (ofsX, ofsY + lineSpacing * 10) $ toText $ concat ["  Points: (", show x0, ",", show y0, ") (", show x1, ",", show y1, ")"]
+        drawText (ofsX, ofsY + lineSpacing * 11) $ toText $ concat ["  Size: (", show w, ",", show h, ")"]
+        drawText (ofsX, ofsY + lineSpacing * 12) $ toText $ concat $ ["  Offset: "] ++ case Animate.scOffset frameClip of
+          Nothing -> []
+          Just (ox,oy) -> ["(", show ox, ",", show oy, ")"]
   case origin of
     Nothing -> return ()
     Just origin' -> drawCrosshair (x,y) origin'
@@ -224,6 +234,6 @@ drawScene = do
     drawText (ofsX, ofsY + lineSpacing * 2) ("Scale: " `mappend` toText (asScaleString scale))
     drawText (ofsX, ofsY + lineSpacing * 3) ("Accel: " `mappend` toText (asSpeedString accel))
   where
-    lineSpacing = 12
+    lineSpacing = 14
     ofsX = 6
     ofsY = 6
