@@ -194,6 +194,8 @@ drawScene = do
   infoShown <- gets vInfoShown
   scale <- gets vScale
   loaded' <- gets vLoaded 
+  highDpi <- asks cHighDpi
+  let lineSpacing = lineSpacing' highDpi
   case loaded' of
     Nothing -> return ()
     Just loaded -> do
@@ -234,6 +236,6 @@ drawScene = do
     drawText (ofsX, ofsY + lineSpacing * 2) ("Scale: " `mappend` toText (asScaleString scale))
     drawText (ofsX, ofsY + lineSpacing * 3) ("Accel: " `mappend` toText (asSpeedString accel))
   where
-    lineSpacing = 14
+    lineSpacing' x = if x then 26 else 16
     ofsX = 6
     ofsY = 6

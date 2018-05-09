@@ -38,6 +38,7 @@ data Options = Options
   , height :: (Maybe Int) <?> "Window height (Minimum is 100 pixels)"
   , scale :: (Maybe Float) <?> "Scale the sprite size"
   , alpha :: (Maybe Int) <?> "Force alpha transparency on sprite sheet"
+  , dpi :: (Maybe Bool) <?> "Use High DPI (Default is True)"
   } deriving (Show, Generic)
 
 instance ParseRecord Options
@@ -48,7 +49,17 @@ main = do
   let windowWidth = max 100 $ fromMaybe 640 (unHelpful (width options))
   let windowHeight = max 100 $ fromMaybe 480 (unHelpful (height options))
   let windowSize =  V2 windowWidth windowHeight
-  let windowCenter = div <$> windowSize <*> 2
+  let highDpi = fromMaybe True (unHelpful $ dpi options)
+
+  SDL.initialize [SDL.InitVideo, SDL.InitAudio]
+  Font.initialize
+  Mixer.openAudio Mixer.defaultAudio 256
+  window <- SDL.createWindow "Animate Preview" SDL.defaultWindow { SDL.windowInitialSize = fromIntegral <$> windowSize, SDL.windowHighDPI = highDpi }
+  renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
+  resources <- loadResources highDpi renderer
+
+  windowSize' <- fmap fromIntegral <$> SDL.glGetDrawableSize window
+  let windowCenter = div <$> windowSize' <*> 2
 
   let settings = Settings
         { sJSON = unHelpful $ json options
@@ -58,17 +69,13 @@ main = do
         , sCenter = windowCenter
         }
 
-  SDL.initialize [SDL.InitVideo, SDL.InitAudio]
-  Font.initialize
-  Mixer.openAudio Mixer.defaultAudio 256
-  window <- SDL.createWindow "Animate Preview" SDL.defaultWindow { SDL.windowInitialSize = fromIntegral <$> windowSize }
-  renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
-  resources <- loadResources renderer
   let cfg = Config
         { cWindow = window
         , cRenderer = renderer
         , cResources = resources
-        , cWinSize = windowSize
+        , cWinSize = windowSize'
+        , cOrgWinSize = windowSize
+        , cHighDpi = highDpi
         , cSettings = settings }
   runAnimatePreview cfg (initVars windowCenter) (load >> mainLoop)
   SDL.destroyWindow window

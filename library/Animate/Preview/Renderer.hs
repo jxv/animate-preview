@@ -56,7 +56,7 @@ class Monad m => Renderer m where
   default drawCrosshair :: (MonadIO m, R m) => (Int, Int) -> Color -> m ()
   drawCrosshair (x,y) color = do
     ren <- asks cRenderer
-    let radius = 3
+    let radius = 8
     let diameter = fromIntegral $ radius * 2
     liftIO $ do
       let color' = fromColor color
@@ -68,7 +68,8 @@ class Monad m => Renderer m where
   drawText xy text = do
     ren <- asks cRenderer
     font <- asks (rFont . cResources)
-    tex <- liftIO $ createText ren font text
+    highDpi <- asks cHighDpi
+    tex <- liftIO $ createText highDpi ren font text
     drawTextureSprite (const tex) xy
     SDL.destroyTexture tex
 

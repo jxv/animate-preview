@@ -44,23 +44,23 @@ loadSurface' path alpha = do
 alphaColorDef :: Animate.Color
 alphaColorDef = (0xff,0x00,0xff)
 
-createText :: SDL.Renderer -> Font.Font -> Text -> IO SDL.Texture
-createText ren font text = do
+createText :: Bool -> SDL.Renderer -> Font.Font -> Text -> IO SDL.Texture
+createText highDpi ren font text = do
   Font.setHinting font Font.None
-  Font.setOutline font 2
+  Font.setOutline font (if highDpi then 3 else 2)
   outline <- Font.solid font (V4 0 0 0 0) text
   Font.setOutline font 0
   inline <- Font.solid font (V4 255 255 255 255) text
-  _ <- SDL.surfaceBlit inline Nothing outline (Just $ SDL.P $ V2 2 2)
+  _ <- SDL.surfaceBlit inline Nothing outline (Just $ SDL.P (if highDpi then 3 else 2))
   tex <- SDL.createTextureFromSurface ren outline
   SDL.freeSurface inline
   SDL.freeSurface outline
   return tex
 
-loadResources :: SDL.Renderer -> IO Resources
-loadResources _renderer = do
+loadResources :: Bool -> SDL.Renderer -> IO Resources
+loadResources highDpi _renderer = do
   fileName <- getDataFileName "resource/ProggyClean.ttf"
-  font <- Font.load fileName 16
+  font <- Font.load fileName (if highDpi then 32 else 16)
   return Resources
     { rFont = font
     }

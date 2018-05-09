@@ -21,6 +21,8 @@ data Config = Config
   , cRenderer :: SDL.Renderer
   , cResources :: Resources
   , cWinSize :: V2 Int
+  , cOrgWinSize :: V2 Int
+  , cHighDpi :: Bool
   , cSettings :: Settings
   }
 
