@@ -198,22 +198,32 @@ drawScene = do
     Nothing -> return ()
     Just loaded -> do
       let animations = (Animate.ssAnimations . lSpriteSheet) loaded
+      let frames = Animate.framesByAnimation animations (Animate.pKey pos)
+      let frameDelay = Animate.fDelay $ frames V.! (Animate.pFrameIndex pos)
+      let framesLen = V.length frames
+      let totalSeconds = sum $ map Animate.fDelay (V.toList frames)
       let loc = Animate.currentLocation animations pos
       let scalar = scalarToSpriteScale scale
       drawAniSprite (lSpriteSheet loaded) outline scalar loc (x, y)
       when infoShown $ do
         let keyName = lIntToText loaded (Animate.pKey pos)
-        drawText (0, lineSpacing * 4) $ toText $ concat ["Key:   \"", fromText keyName, "\" (", show $ Animate.pKey pos, "/", show $ lTotalKeys loaded, ")"]
-        drawText (0, lineSpacing * 5) $ toText $ concat ["Pos:   Frame ", show $ Animate.pFrameIndex pos, " (", show $ Animate.pCounter pos, ")"]
+        drawText (ofsX, ofsY + lineSpacing * 4) $ toText $ concat ["Anim:"]
+        drawText (ofsX, ofsY + lineSpacing * 5) $ toText $ concat ["  Key: \"", fromText keyName, "\" ", show $ Animate.pKey pos, " / ", show $ lTotalKeys loaded - 1]
+        drawText (ofsX, ofsY + lineSpacing * 6) $ toText $ concat ["  Time: ", show totalSeconds]
+        drawText (ofsX, ofsY + lineSpacing * 7) $ toText $ concat ["Pos:"]
+        drawText (ofsX, ofsY + lineSpacing * 8) $ toText $ concat ["  Frame: ", show $ Animate.pFrameIndex pos,  " / ", show $ framesLen - 1]
+        drawText (ofsX, ofsY + lineSpacing * 9) $ toText $ concat ["  Time: ", show $ Animate.pCounter pos, " / ", show $ frameDelay]
   case origin of
     Nothing -> return ()
     Just origin' -> drawCrosshair (x,y) origin'
   -- HUD
   when infoShown $ do
     settings <- asks cSettings
-    drawText (0, lineSpacing * 0) ("Mode:  " `mappend` if mode == Mode'Playback then "Playback" else "Stepper")
-    drawText (0, lineSpacing * 1) ("File:  " `mappend` toText (sJSON settings))
-    drawText (0, lineSpacing * 2) ("Scale: " `mappend` toText (asScaleString scale))
-    drawText (0, lineSpacing * 3) ("Accel: " `mappend` toText (asSpeedString accel))
+    drawText (ofsX, ofsY + lineSpacing * 0) ("Mode: " `mappend` if mode == Mode'Playback then "Playback" else "Stepper")
+    drawText (ofsX, ofsY + lineSpacing * 1) ("File: " `mappend` toText (sJSON settings))
+    drawText (ofsX, ofsY + lineSpacing * 2) ("Scale: " `mappend` toText (asScaleString scale))
+    drawText (ofsX, ofsY + lineSpacing * 3) ("Accel: " `mappend` toText (asSpeedString accel))
   where
     lineSpacing = 12
+    ofsX = 6
+    ofsY = 6

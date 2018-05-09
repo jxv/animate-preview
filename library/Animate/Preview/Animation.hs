@@ -11,7 +11,7 @@ newtype Seconds = Seconds Float
   deriving (Eq, Num, ToJSON, FromJSON, Fractional, Ord)
 
 instance Show Seconds where
-  show (Seconds s) = printf "%.2f" s ++ "s"
+  show (Seconds s) = printf "%.3f" s ++ "s"
 
 clamp :: (Fractional a, Ord a) => a -> a -> a -> a
 clamp cur min' max' = if cur > max' then max' else (if cur < min' then min' else cur)
