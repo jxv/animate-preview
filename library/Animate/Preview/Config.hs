@@ -12,7 +12,6 @@ data Settings = Settings
   { sJSON :: String
   , sSpritesheet :: Maybe String
   , sScale :: Float
-  , sAlpha :: Maybe Word32
   , sCenter :: V2 Int
   }
 

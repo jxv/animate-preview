@@ -36,7 +36,6 @@ data Options = Options
   , width :: (Maybe Int) <?> "Window width (Minimum is 100 pixels)"
   , height :: (Maybe Int) <?> "Window height (Minimum is 100 pixels)"
   , scale :: (Maybe Float) <?> "Scale the sprite size"
-  , alpha :: (Maybe Int) <?> "Force alpha transparency on sprite sheet"
   , dpi :: (Maybe Bool) <?> "Use High DPI (Default is True)"
   } deriving (Show, Generic)
 
@@ -63,7 +62,6 @@ main = do
         { sJSON = unHelpful $ json options
         , sSpritesheet = unHelpful $ image options
         , sScale = fromMaybe 1 (unHelpful $ scale options)
-        , sAlpha = Nothing <|> (fromIntegral <$> (unHelpful $ alpha options))
         , sCenter = windowCenter
         }
 
