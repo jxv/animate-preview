@@ -47,11 +47,11 @@ alphaColorDef = (0xff,0x00,0xff)
 createText :: Bool -> SDL.Renderer -> Font.Font -> Text -> IO SDL.Texture
 createText highDpi ren font text = do
   Font.setHinting font Font.None
-  Font.setOutline font (if highDpi then 3 else 2)
+  Font.setOutline font (if highDpi then 4 else 2)
   outline <- Font.solid font (V4 0 0 0 0) text
   Font.setOutline font 0
   inline <- Font.solid font (V4 255 255 255 255) text
-  _ <- SDL.surfaceBlit inline Nothing outline (Just $ SDL.P (if highDpi then 3 else 2))
+  _ <- SDL.surfaceBlit inline Nothing outline (Just $ SDL.P (if highDpi then 4 else 2))
   tex <- SDL.createTextureFromSurface ren outline
   SDL.freeSurface inline
   SDL.freeSurface outline

@@ -33,7 +33,7 @@ import Animate.Preview.State
 
 data Options = Options
   { json :: String  <?> "JSON file path with sprite data"
-  , spritesheet :: (Maybe String) <?> "Force sprite sheet path"
+  , image :: (Maybe String) <?> "Force sprite sheet image path"
   , width :: (Maybe Int) <?> "Window width (Minimum is 100 pixels)"
   , height :: (Maybe Int) <?> "Window height (Minimum is 100 pixels)"
   , scale :: (Maybe Float) <?> "Scale the sprite size"
@@ -63,7 +63,7 @@ main = do
 
   let settings = Settings
         { sJSON = unHelpful $ json options
-        , sSpritesheet = unHelpful $ spritesheet options
+        , sSpritesheet = unHelpful $ image options
         , sScale = fromMaybe 1 (unHelpful $ scale options)
         , sAlpha = Nothing <|> (fromIntegral <$> (unHelpful $ alpha options))
         , sCenter = windowCenter
