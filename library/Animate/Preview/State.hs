@@ -32,9 +32,14 @@ data Vars = Vars
   , vScale :: Scalar
   , vInfoShown :: Bool
   , vMode :: Mode
-  , vPos :: Animate.Position Int Seconds
+  , vCurrent :: Maybe Current
   , vLoaded :: Maybe Loaded
   }
+
+data Current = Current
+  { cPos :: Animate.Position Int Seconds
+  , cKeyName :: Text
+  } deriving (Show, Eq)
 
 initVars :: V2 Int -> Vars
 initVars center = Vars
@@ -47,7 +52,7 @@ initVars center = Vars
   , vScale = Scalar'None
   , vInfoShown = True
   , vMode = Mode'Playback
-  , vPos = Animate.initPosition 0
+  , vCurrent = Nothing
   , vLoaded = Nothing
   }
 

@@ -1,14 +1,12 @@
 {-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE DataKinds #-}
-{-# LANGUAGE OverloadedStrings #-}
 module Animate.Preview
   ( main
   ) where
 
 import qualified SDL
 import qualified SDL.Font as Font
-import Control.Applicative ((<|>))
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
 import Control.Monad.State (MonadState, StateT, evalStateT)
@@ -73,7 +71,7 @@ main = do
         , cOrgWinSize = windowSize
         , cHighDpi = highDpi
         , cSettings = settings }
-  runAnimatePreview cfg (initVars windowCenter) (load >> mainLoop)
+  runAnimatePreview cfg (initVars windowCenter) (reload >> mainLoop)
   SDL.destroyWindow window
   freeResources resources
   Font.quit

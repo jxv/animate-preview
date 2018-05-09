@@ -45,10 +45,14 @@ updateKeyFrame = do
     Nothing -> return ()
     Just loaded -> do
       let animations = (Animate.ssAnimations . lSpriteSheet) loaded
-      when (isPressed $ iNextKeyFrame input) $ modify $ \v ->
-        v { vPos = Animate.initPosition $ unsafeNextKey (Animate.pKey $ vPos v) animations }
-      when (isPressed $ iPrevKeyFrame input) $ modify $ \v ->
-        v { vPos = Animate.initPosition $ unsafePrevKey (Animate.pKey $ vPos v) animations }
+      when (isPressed $ iNextKeyFrame input) $ modify $ \v -> v
+        { vCurrent =  flip fmap (vCurrent v) $ \c -> c
+          { cPos = Animate.initPosition $ unsafeNextKey (Animate.pKey $ cPos c) animations }
+        }
+      when (isPressed $ iPrevKeyFrame input) $ modify $ \v -> v
+        { vCurrent =  flip fmap (vCurrent v) $ \c -> c
+          { cPos = Animate.initPosition $ unsafePrevKey (Animate.pKey $ cPos c) animations }
+        }
 
 unsafeNextKey :: Int -> Animate.Animations a b c -> Int
 unsafeNextKey n (Animate.Animations a) = (1 + n) `mod` (V.length a)
@@ -64,9 +68,38 @@ updateMode = do
 updateReload :: (S m, HasInput m, Loader m) => m ()
 updateReload = do
   input <- getInput
-  when (isPressed $ iReload input) $ do
-    _loaded <- load
-    return ()
+  when (isPressed $ iReload input) $ reload
+
+reload :: (S m, Loader m) => m ()
+reload = do
+  _ <- load
+  loaded' <- gets vLoaded
+  case loaded' of
+    Nothing -> return ()
+    Just loaded -> do
+      current <- gets vCurrent
+      case current of
+        Nothing -> modify $ \v -> v
+          { vCurrent = Just $ Current (Animate.initPosition 0) (lIntToText loaded 0) }
+        Just c -> modify $ \v -> v
+          { vCurrent = Just $ reloadCurrent loaded c }
+
+reloadCurrent :: Loaded -> Current -> Current
+reloadCurrent l c
+  | lIntToText l (Animate.pKey . cPos $ c) == cKeyName c = case lTextToInt l (cKeyName c) of
+      Nothing -> reset
+      Just k -> c
+        { cPos = (cPos c)
+            { Animate.pKey = k
+            , Animate.pFrameIndex = mod
+                (Animate.pFrameIndex (cPos c))
+                (V.length $ Animate.framesByAnimation (Animate.ssAnimations $ lSpriteSheet l) k)
+            , Animate.pCounter = 0
+            }
+        }
+  | otherwise = reset
+  where
+    reset = Current (Animate.initPosition 0) (lIntToText l 0)
 
 updateAnimation :: (R m, S m, Renderer m, HasInput m) => m ()
 updateAnimation = do
@@ -76,17 +109,19 @@ updateAnimation = do
     Nothing -> return ()
     Just loaded -> do
       let animations = (Animate.ssAnimations . lSpriteSheet) loaded
-      pos <- gets vPos
-      case mode of
-        Mode'Stepper -> do
-          input <- getInput
-          when (onceThenFire $ iFaster input) $ modify $ \v -> v { vPos = forceNextFrameIndex animations pos }
-          when (onceThenFire $ iSlower input) $ modify $ \v -> v { vPos = forcePrevFrameIndex animations pos }
-        Mode'Playback -> do
-          accel <- gets vAccel
-          let accelScalar = scalarToSeconds accel
-          let pos' = Animate.stepPosition animations pos (frameDeltaSeconds * (Seconds accelScalar))
-          modify $ \v -> v { vPos = pos' }
+      current' <- gets vCurrent
+      case current' of
+        Nothing -> return ()
+        Just c@Current{cPos=pos} -> case mode of
+          Mode'Stepper -> do
+            input <- getInput
+            when (onceThenFire $ iFaster input) $ modify $ \v -> v { vCurrent = Just $ c { cPos = forceNextFrameIndex animations pos } }
+            when (onceThenFire $ iSlower input) $ modify $ \v -> v { vCurrent = Just $ c { cPos = forcePrevFrameIndex animations pos } }
+          Mode'Playback -> do
+            accel <- gets vAccel
+            let accelScalar = scalarToSeconds accel
+            let pos' = Animate.stepPosition animations pos (frameDeltaSeconds * (Seconds accelScalar))
+            modify $ \v -> v { vCurrent = Just $ c { cPos = pos' } }
 
 unsafeForceNextFrameIndex :: V.Vector (Animate.Frame loc delay) -> Animate.FrameIndex -> Animate.FrameIndex
 unsafeForceNextFrameIndex frames idx = if idx + 1 >= len then 0 else idx + 1
@@ -186,45 +221,58 @@ toggleVisuals = do
 drawScene :: (R m, S m, Renderer m, HasInput m) => m ()
 drawScene = do
   V2 x y <- gets vCenter
-  pos <- gets vPos
+  current <- gets vCurrent
   origin <- gets vOrigin
   outline <- gets vOutline
   accel <- gets vAccel
   mode <- gets vMode
   infoShown <- gets vInfoShown
   scale <- gets vScale
+  let scalar = scalarToSpriteScale scale
   loaded' <- gets vLoaded 
   highDpi <- asks cHighDpi
   let lineSpacing = lineSpacing' highDpi
   case loaded' of
-    Nothing -> return ()
+    Nothing -> when infoShown $ do
+      drawText (ofsX, ofsY + lineSpacing * 4)  $ toText $ concat ["Anim:"]
+      drawText (ofsX, ofsY + lineSpacing * 5)  $ toText $ concat ["  Key:"]
+      drawText (ofsX, ofsY + lineSpacing * 6)  $ toText $ concat ["  Time:"]
+      drawText (ofsX, ofsY + lineSpacing * 7)  $ toText $ concat ["Pos:"]
+      drawText (ofsX, ofsY + lineSpacing * 8)  $ toText $ concat ["  Frame:"]
+      drawText (ofsX, ofsY + lineSpacing * 9)  $ toText $ concat ["  Time:"]
+      drawText (ofsX, ofsY + lineSpacing * 10) $ toText $ concat ["  Points:"]
+      drawText (ofsX, ofsY + lineSpacing * 11) $ toText $ concat ["  Size:"]
+      drawText (ofsX, ofsY + lineSpacing * 12) $ toText $ concat ["  Offset: "]
     Just loaded -> do
-      let animations = (Animate.ssAnimations . lSpriteSheet) loaded
-      let frames = Animate.framesByAnimation animations (Animate.pKey pos)
-      let frame = frames V.! Animate.pFrameIndex pos
-      let frameDelay = Animate.fDelay frame
-      let frameClip = Animate.fLocation frame
-      let (x0,y0) = (Animate.scX frameClip, Animate.scY frameClip)
-      let (w,h) = (Animate.scW frameClip, Animate.scH frameClip)
-      let (x1,y1) = (x0 + w, y0 + h)
-      let framesLen = V.length frames
-      let totalSeconds = sum $ map Animate.fDelay (V.toList frames)
-      let loc = Animate.currentLocation animations pos
-      let scalar = scalarToSpriteScale scale
-      drawAniSprite (lSpriteSheet loaded) outline scalar loc (x, y)
-      when infoShown $ do
-        let keyName = lIntToText loaded (Animate.pKey pos)
-        drawText (ofsX, ofsY + lineSpacing * 4)  $ toText $ concat ["Anim:"]
-        drawText (ofsX, ofsY + lineSpacing * 5)  $ toText $ concat ["  Key: \"", fromText keyName, "\" ", show $ Animate.pKey pos, " [", show $ lTotalKeys loaded - 1, "]"]
-        drawText (ofsX, ofsY + lineSpacing * 6)  $ toText $ concat ["  Time: ", show totalSeconds]
-        drawText (ofsX, ofsY + lineSpacing * 7)  $ toText $ concat ["Pos:"]
-        drawText (ofsX, ofsY + lineSpacing * 8)  $ toText $ concat ["  Frame: ", show $ Animate.pFrameIndex pos,  " [", show $ framesLen - 1, "]"]
-        drawText (ofsX, ofsY + lineSpacing * 9)  $ toText $ concat ["  Time: ", show $ Animate.pCounter pos, " [", show $ frameDelay, "]"]
-        drawText (ofsX, ofsY + lineSpacing * 10) $ toText $ concat ["  Points: (", show x0, ",", show y0, ") (", show x1, ",", show y1, ")"]
-        drawText (ofsX, ofsY + lineSpacing * 11) $ toText $ concat ["  Size: (", show w, ",", show h, ")"]
-        drawText (ofsX, ofsY + lineSpacing * 12) $ toText $ concat $ ["  Offset: "] ++ case Animate.scOffset frameClip of
-          Nothing -> []
-          Just (ox,oy) -> ["(", show ox, ",", show oy, ")"]
+      case current of
+        Nothing -> return ()
+        Just c -> do
+          let pos = cPos c
+          let animations = (Animate.ssAnimations . lSpriteSheet) loaded
+          let frames = Animate.framesByAnimation animations (Animate.pKey pos)
+          let frame = frames V.! Animate.pFrameIndex pos
+          let frameDelay = Animate.fDelay frame
+          let frameClip = Animate.fLocation frame
+          let (x0,y0) = (Animate.scX frameClip, Animate.scY frameClip)
+          let (w,h) = (Animate.scW frameClip, Animate.scH frameClip)
+          let (x1,y1) = (x0 + w, y0 + h)
+          let framesLen = V.length frames
+          let totalSeconds = sum $ map Animate.fDelay (V.toList frames)
+          let loc = Animate.currentLocation animations pos
+          drawAniSprite (lSpriteSheet loaded) outline scalar loc (x, y)
+          when infoShown $ do
+            let keyName = cKeyName c
+            drawText (ofsX, ofsY + lineSpacing * 4)  $ toText $ concat ["Anim:"]
+            drawText (ofsX, ofsY + lineSpacing * 5)  $ toText $ concat ["  Key: \"", fromText keyName, "\" ", show $ Animate.pKey pos, " [", show $ lTotalKeys loaded - 1, "]"]
+            drawText (ofsX, ofsY + lineSpacing * 6)  $ toText $ concat ["  Time: ", show totalSeconds]
+            drawText (ofsX, ofsY + lineSpacing * 7)  $ toText $ concat ["Pos:"]
+            drawText (ofsX, ofsY + lineSpacing * 8)  $ toText $ concat ["  Frame: ", show $ Animate.pFrameIndex pos,  " [", show $ framesLen - 1, "]"]
+            drawText (ofsX, ofsY + lineSpacing * 9)  $ toText $ concat ["  Time: ", show $ Animate.pCounter pos, " [", show $ frameDelay, "]"]
+            drawText (ofsX, ofsY + lineSpacing * 10) $ toText $ concat ["  Points: (", show x0, ",", show y0, ") (", show x1, ",", show y1, ")"]
+            drawText (ofsX, ofsY + lineSpacing * 11) $ toText $ concat ["  Size: (", show w, ",", show h, ")"]
+            drawText (ofsX, ofsY + lineSpacing * 12) $ toText $ concat $ ["  Offset: "] ++ case Animate.scOffset frameClip of
+              Nothing -> []
+              Just (ox,oy) -> ["(", show ox, ",", show oy, ")"]
   case origin of
     Nothing -> return ()
     Just origin' -> drawCrosshair (x,y) origin'
