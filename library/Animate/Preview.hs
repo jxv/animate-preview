@@ -7,7 +7,6 @@ module Animate.Preview
   ) where
 
 import qualified SDL
-import qualified SDL.Mixer as Mixer
 import qualified SDL.Font as Font
 import Control.Applicative ((<|>))
 import Control.Monad.IO.Class (MonadIO(..))
@@ -51,9 +50,8 @@ main = do
   let windowSize =  V2 windowWidth windowHeight
   let highDpi = fromMaybe True (unHelpful $ dpi options)
 
-  SDL.initialize [SDL.InitVideo, SDL.InitAudio]
+  SDL.initialize [SDL.InitVideo]
   Font.initialize
-  Mixer.openAudio Mixer.defaultAudio 256
   window <- SDL.createWindow "Animate Preview" SDL.defaultWindow { SDL.windowInitialSize = fromIntegral <$> windowSize, SDL.windowHighDPI = highDpi }
   renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
   resources <- loadResources highDpi renderer
@@ -80,8 +78,6 @@ main = do
   runAnimatePreview cfg (initVars windowCenter) (load >> mainLoop)
   SDL.destroyWindow window
   freeResources resources
-  Mixer.closeAudio
-  Mixer.quit
   Font.quit
   SDL.quit
 

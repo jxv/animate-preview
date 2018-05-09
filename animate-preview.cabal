@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 3c160ea3a4486b26f96d228080bc973c3a234caa7f2d62ac7dc069fac5559f1c
+-- hash: 02947685c87660ff3258fb1298cf3706548fcad8e90443cafa981e6843084fec
 
 name:           animate-preview
 version:        0.0.0
@@ -54,7 +54,6 @@ library
     , sdl2
     , sdl2-gfx
     , sdl2-image
-    , sdl2-mixer
     , sdl2-ttf
     , text
     , text-conversions

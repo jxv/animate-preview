@@ -1,14 +1,12 @@
 module Animate.Preview.Resource where
 
 import qualified SDL
-import qualified SDL.Mixer as Mixer
 import qualified SDL.Font as Font
 import qualified SDL.Image as Image
 import qualified Animate
 import qualified SDL.Raw.Video as Raw
 import qualified SDL.Internal.Numbered as Numbered
 import Data.Text (Text)
-import Data.Text.Conversions (toText)
 import Data.StateVar (($=))
 import SDL.Vect
 import System.IO.Error (catchIOError)
