@@ -17,7 +17,6 @@ import System.IO.Error (catchIOError)
 
 import Animate.Preview.Animation
 import Animate.Preview.Config
-import Animate.Preview.Clock
 import Animate.Preview.Logger
 import Animate.Preview.Renderer
 import Animate.Preview.Input
@@ -26,9 +25,11 @@ import Animate.Preview.Scene
 import Animate.Preview.ManagerInput
 import Animate.Preview.State
 import Animate.Preview.Resource
+import Animate.Preview.Timer
 
-mainLoop :: (R m, S m, Logger m, Clock m, Renderer m, HasInput m, Scene m) => m ()
+mainLoop :: (R m, S m, Logger m, Renderer m, HasInput m, Scene m, Timer m) => m ()
 mainLoop = do
+  ticks <- startTicks
   winSize <- asks cWinSize
   background <- gets vBackground
   updateInput
@@ -37,6 +38,6 @@ mainLoop = do
   drawBackground winSize background
   sceneStep
   drawScreen
-  delayMilliseconds frameDeltaMilliseconds
   let quit = iQuit input || ksStatus (iEscape input) == KeyStatus'Pressed
+  delayTicks ticks
   unless quit mainLoop

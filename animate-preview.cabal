@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 02947685c87660ff3258fb1298cf3706548fcad8e90443cafa981e6843084fec
+-- hash: 63adc94308c300003ed09be8c39ec68d63fa76278d05bb9727c461507d688f32
 
 name:           animate-preview
 version:        0.0.0
@@ -42,6 +42,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , fsnotify
     , key-state
     , lens
     , linear
@@ -61,7 +62,6 @@ library
   exposed-modules:
       Animate.Preview
       Animate.Preview.Animation
-      Animate.Preview.Clock
       Animate.Preview.Color
       Animate.Preview.Config
       Animate.Preview.Frame
@@ -78,6 +78,7 @@ library
       Animate.Preview.SDLInput
       Animate.Preview.SDLRenderer
       Animate.Preview.State
+      Animate.Preview.Timer
   other-modules:
       Paths_animate_preview
   default-language: Haskell2010

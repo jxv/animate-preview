@@ -16,7 +16,6 @@ import Options.Generic
 import SDL.Vect
 
 import Animate.Preview.Config
-import Animate.Preview.Clock
 import Animate.Preview.Logger
 import Animate.Preview.Loader
 import Animate.Preview.Renderer
@@ -27,17 +26,19 @@ import Animate.Preview.Resource
 import Animate.Preview.Runner
 import Animate.Preview.Scene
 import Animate.Preview.State
+import Animate.Preview.Timer
 
 data Options = Options
-  { json :: String  <?> "JSON file path with sprite data"
+  { target :: String  <?> "file path with sprite data (JSON)"
   , image :: (Maybe String) <?> "Force sprite sheet image path"
   , width :: (Maybe Int) <?> "Window width (Minimum is 100 pixels)"
   , height :: (Maybe Int) <?> "Window height (Minimum is 100 pixels)"
   , scale :: (Maybe Float) <?> "Scale the sprite size"
-  , dpi :: (Maybe Bool) <?> "Use High DPI (Default is True)"
+  , highDpi :: Bool <?> "Use high DPI"
   } deriving (Show, Generic)
 
-instance ParseRecord Options
+instance ParseRecord Options where
+  parseRecord = parseRecordWithModifiers lispCaseModifiers
 
 main :: IO ()
 main = do
@@ -45,19 +46,19 @@ main = do
   let windowWidth = max 100 $ fromMaybe 640 (unHelpful (width options))
   let windowHeight = max 100 $ fromMaybe 480 (unHelpful (height options))
   let windowSize =  V2 windowWidth windowHeight
-  let highDpi = fromMaybe True (unHelpful $ dpi options)
+  let highDpi' = unHelpful $ highDpi options
 
   SDL.initialize [SDL.InitVideo]
   Font.initialize
-  window <- SDL.createWindow "Animate Preview" SDL.defaultWindow { SDL.windowInitialSize = fromIntegral <$> windowSize, SDL.windowHighDPI = highDpi }
+  window <- SDL.createWindow "Animate Preview" SDL.defaultWindow { SDL.windowInitialSize = fromIntegral <$> windowSize, SDL.windowHighDPI = highDpi' }
   renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
-  resources <- loadResources highDpi renderer
+  resources <- loadResources highDpi' renderer
 
   windowSize' <- fmap fromIntegral <$> SDL.glGetDrawableSize window
   let windowCenter = div <$> windowSize' <*> 2
 
   let settings = Settings
-        { sJSON = unHelpful $ json options
+        { sJSON = unHelpful $ target options
         , sSpritesheet = unHelpful $ image options
         , sScale = fromMaybe 1 (unHelpful $ scale options)
         , sCenter = windowCenter
@@ -69,7 +70,7 @@ main = do
         , cResources = resources
         , cWinSize = windowSize'
         , cOrgWinSize = windowSize
-        , cHighDpi = highDpi
+        , cHighDpi = highDpi'
         , cSettings = settings }
   runAnimatePreview cfg (initVars windowCenter) (reload >> mainLoop)
   SDL.destroyWindow window
@@ -83,7 +84,6 @@ newtype AnimatePreview a = AnimatePreview (ReaderT Config (StateT Vars IO) a)
 runAnimatePreview :: Config -> Vars -> AnimatePreview a -> IO a
 runAnimatePreview config v (AnimatePreview m) = evalStateT (runReaderT m config) v
 
-instance Clock AnimatePreview
 instance Logger AnimatePreview
 instance SDLRenderer AnimatePreview
 instance SDLInput AnimatePreview
@@ -91,3 +91,4 @@ instance HasInput AnimatePreview
 instance Renderer AnimatePreview
 instance Scene AnimatePreview
 instance Loader AnimatePreview
+instance Timer AnimatePreview

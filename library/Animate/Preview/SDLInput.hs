@@ -33,7 +33,7 @@ class Monad m => SDLInput m where
   getMousePos = do
     winSize <- asks cWinSize
     orgWinSize <- asks cOrgWinSize
-    (SDL.P pos) <- liftIO SDL.getAbsoluteMouseLocation
+    SDL.P pos <- liftIO SDL.getAbsoluteMouseLocation
     let pos' = div <$> ((*) <$> winSize <*> (fmap fromIntegral pos)) <*> orgWinSize
     return $ fmap fromIntegral pos'
 
