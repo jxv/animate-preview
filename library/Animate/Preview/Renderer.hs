@@ -26,8 +26,8 @@ class Monad m => Renderer m where
   default updateScreenInfo :: (R m, S m, MonadIO m) => m ()
   updateScreenInfo = do
     w <- asks cWindow
-    drawSize <- liftIO $ get (SDL.windowSize w)
-    winSize <- liftIO $ SDL.glGetDrawableSize w
+    winSize <- liftIO $ get (SDL.windowSize w)
+    drawSize <- liftIO $ SDL.glGetDrawableSize w
     modify $ \v -> v { vDrawSize = fromIntegral <$> drawSize, vWinSize = fromIntegral <$> winSize }
 
   clearScreen :: m ()

@@ -14,8 +14,8 @@ import Control.Monad (when, forever, void)
 import Control.Concurrent (threadDelay, forkIO, newMVar)
 import Control.Exception.Safe (MonadThrow, MonadCatch)
 import Data.Maybe (fromMaybe)
+import Data.StateVar (get)
 import Options.Generic
-import SDL.Vect
 import System.FSNotify (withManager, watchDir, eventPath)
 import System.FilePath (takeDirectory, takeFileName)
 
@@ -35,8 +35,6 @@ import Animate.Preview.Timer
 data Options = Options
   { target :: String  <?> "file path with sprite data (JSON)"
   , image :: (Maybe String) <?> "Force sprite sheet image path"
-  , width :: (Maybe Int) <?> "Window width (Minimum is 100 pixels)"
-  , height :: (Maybe Int) <?> "Window height (Minimum is 100 pixels)"
   , scale :: (Maybe Float) <?> "Scale the sprite size"
   , highDpi :: Bool <?> "Use high DPI"
   , watch :: Bool <?> "Watch files and reload on change"
@@ -48,9 +46,6 @@ instance ParseRecord Options where
 main :: IO ()
 main = do
   options <- getRecord "options"
-  let windowWidth = max 100 $ fromMaybe 640 (unHelpful (width options))
-  let windowHeight = max 100 $ fromMaybe 480 (unHelpful (height options))
-  let windowSize =  V2 windowWidth windowHeight
   let highDpi' = unHelpful $ highDpi options
 
   SDL.initialize [SDL.InitVideo]
@@ -58,8 +53,7 @@ main = do
   window <- SDL.createWindow
     "Animate Preview"
     SDL.defaultWindow
-      { SDL.windowInitialSize = fromIntegral <$> windowSize
-      , SDL.windowHighDPI = highDpi'
+      { SDL.windowHighDPI = highDpi'
       , SDL.windowResizable = True
       }
   renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
@@ -67,6 +61,7 @@ main = do
   loaded <- newMVar Nothing
   current <- newMVar Nothing
 
+  winSize <- fmap fromIntegral <$> get (SDL.windowSize window)
   drawSize <- fmap fromIntegral <$> SDL.glGetDrawableSize window
 
   let settings = Settings
@@ -79,7 +74,7 @@ main = do
         { cWindow = window
         , cRenderer = renderer
         , cResources = resources
-        , cHighDpi = highDpi'
+        , cHighDpi = highDpi' && (winSize /= drawSize)
         , cSettings = settings
         , cCurrent = current
         , cLoaded = loaded
@@ -91,7 +86,7 @@ main = do
       Nothing -> return ()
       Just imgPath -> runWatcherAndReloader cfg imgPath
   
-  let v = initVars windowSize drawSize
+  let v = initVars winSize drawSize
   runAnimatePreview cfg v (reload >> mainLoop)
   SDL.destroyWindow window
   freeResources resources
