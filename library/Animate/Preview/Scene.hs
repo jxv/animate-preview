@@ -2,7 +2,9 @@ module Animate.Preview.Scene where
 
 import qualified Animate
 import qualified Data.Vector as V
+import Control.Concurrent (putMVar, readMVar, modifyMVar_)
 import Control.Monad (when)
+import Control.Monad.IO.Class (MonadIO(liftIO))
 import Control.Monad.Reader (asks)
 import Control.Monad.State (modify, gets)
 import Data.Text.Conversions (toText, fromText)
@@ -24,7 +26,7 @@ import Animate.Preview.Loader
 
 class Monad m => Scene m where
   sceneStep :: m ()
-  default sceneStep :: (R m, S m, Renderer m, HasInput m, Logger m, Loader m) => m ()
+  default sceneStep :: (R m, S m, Renderer m, HasInput m, Logger m, Loader m, MonadIO m) => m ()
   sceneStep = do
     updateMode
     updateReload
@@ -37,22 +39,18 @@ class Monad m => Scene m where
     updateAnimation
     drawScene
 
-updateKeyFrame :: (S m, HasInput m) => m ()
+updateKeyFrame :: (R m, HasInput m, MonadIO m) => m ()
 updateKeyFrame = do
   input <- getInput
-  loaded' <- gets vLoaded 
+  loaded' <- getLoaded 
   case loaded' of
     Nothing -> return ()
     Just loaded -> do
       let animations = (Animate.ssAnimations . lSpriteSheet) loaded
-      when (isPressed $ iNextKeyFrame input) $ modify $ \v -> v
-        { vCurrent =  flip fmap (vCurrent v) $ \c -> c
-          { cPos = Animate.initPosition $ unsafeNextKey (Animate.pKey $ cPos c) animations }
-        }
-      when (isPressed $ iPrevKeyFrame input) $ modify $ \v -> v
-        { vCurrent =  flip fmap (vCurrent v) $ \c -> c
-          { cPos = Animate.initPosition $ unsafePrevKey (Animate.pKey $ cPos c) animations }
-        }
+      when (isPressed $ iNextKeyFrame input) $ modifyCurrent' $ \c ->
+        c { cPos = Animate.initPosition $ unsafeNextKey (Animate.pKey $ cPos c) animations }
+      when (isPressed $ iPrevKeyFrame input) $ modifyCurrent' $ \c ->
+        c { cPos = Animate.initPosition $ unsafePrevKey (Animate.pKey $ cPos c) animations }
 
 unsafeNextKey :: Int -> Animate.Animations a b c -> Int
 unsafeNextKey n (Animate.Animations a) = (1 + n) `mod` (V.length a)
@@ -65,24 +63,22 @@ updateMode = do
   input <- getInput
   when (onceThenFire $ iMode input) $ modify $ \v -> v { vMode = if vMode v == Mode'Playback then Mode'Stepper else Mode'Playback }
 
-updateReload :: (S m, HasInput m, Loader m) => m ()
+updateReload :: (S m, R m, HasInput m, Loader m, MonadIO m) => m ()
 updateReload = do
   input <- getInput
-  when (isPressed $ iReload input) $ reload
+  when (isPressed $ iReload input)reload
 
-reload :: (S m, Loader m) => m ()
+reload :: (R m, Loader m, MonadIO m) => m ()
 reload = do
   _ <- load
-  loaded' <- gets vLoaded
+  loaded' <- getLoaded
   case loaded' of
     Nothing -> return ()
     Just loaded -> do
-      current <- gets vCurrent
-      case current of
-        Nothing -> modify $ \v -> v
-          { vCurrent = Just $ Current (Animate.initPosition 0) (lIntToText loaded 0) }
-        Just c -> modify $ \v -> v
-          { vCurrent = Just $ reloadCurrent loaded c }
+      modifyCurrent $ \current ->
+        case current of
+          Nothing -> Just $ Current (Animate.initPosition 0) (lIntToText loaded 0)
+          Just c -> Just $ reloadCurrent loaded c
 
 reloadCurrent :: Loaded -> Current -> Current
 reloadCurrent l c
@@ -101,27 +97,27 @@ reloadCurrent l c
   where
     reset = Current (Animate.initPosition 0) (lIntToText l 0)
 
-updateAnimation :: (R m, S m, Renderer m, HasInput m) => m ()
+updateAnimation :: (R m, S m, Renderer m, HasInput m, MonadIO m) => m ()
 updateAnimation = do
   mode <- gets vMode
-  loaded' <- gets vLoaded 
+  loaded' <- getLoaded 
   case loaded' of
     Nothing -> return ()
     Just loaded -> do
       let animations = (Animate.ssAnimations . lSpriteSheet) loaded
-      current' <- gets vCurrent
+      current' <- getCurrent
       case current' of
         Nothing -> return ()
         Just c@Current{cPos=pos} -> case mode of
           Mode'Stepper -> do
             input <- getInput
-            when (onceThenFire $ iFaster input) $ modify $ \v -> v { vCurrent = Just $ c { cPos = forceNextFrameIndex animations pos } }
-            when (onceThenFire $ iSlower input) $ modify $ \v -> v { vCurrent = Just $ c { cPos = forcePrevFrameIndex animations pos } }
+            when (onceThenFire $ iFaster input) $ modifyCurrent' $ \c -> c { cPos = forceNextFrameIndex animations pos }
+            when (onceThenFire $ iSlower input) $ modifyCurrent' $ \c -> c { cPos = forcePrevFrameIndex animations pos }
           Mode'Playback -> do
             accel <- gets vAccel
             let accelScalar = scalarToSeconds accel
             let pos' = Animate.stepPosition animations pos (frameDeltaSeconds * (Seconds accelScalar))
-            modify $ \v -> v { vCurrent = Just $ c { cPos = pos' } }
+            modifyCurrent' $ \c -> c { cPos = pos' }
 
 unsafeForceNextFrameIndex :: V.Vector (Animate.Frame loc delay) -> Animate.FrameIndex -> Animate.FrameIndex
 unsafeForceNextFrameIndex frames idx = if idx + 1 >= len then 0 else idx + 1
@@ -186,6 +182,26 @@ updateScale = do
         | otherwise = s
   modify $ \v -> v { vScale = change (vScale v) }
 
+modifyCurrent' :: (R m, MonadIO m) => (Current -> Current) -> m ()
+modifyCurrent' f = do
+  m <- asks cCurrent
+  liftIO $ modifyMVar_ m (\c -> return $ fmap f c)
+
+modifyCurrent :: (R m, MonadIO m) => (Maybe Current -> Maybe Current) -> m ()
+modifyCurrent f = do
+  m <- asks cCurrent
+  liftIO $ modifyMVar_ m (\c -> return $ f c)
+
+setCurrent :: (R m, MonadIO m) => Maybe Current -> m ()
+setCurrent c = do
+  m <- asks cCurrent
+  liftIO $ modifyMVar_ m (\_ -> return c)
+
+getCurrent :: (R m, MonadIO m) => m (Maybe Current)
+getCurrent = do
+  m <- asks cCurrent
+  liftIO $ readMVar m
+
 fapply :: [a -> a] -> a -> a
 fapply xs a = case xs of [] -> a; (y:ys) -> fapply ys (y a)
 
@@ -218,10 +234,10 @@ toggleVisuals = do
     , vOutline = (if toggleOutline then toggleColors else id) (vOutline v)
     })
 
-drawScene :: (R m, S m, Renderer m, HasInput m) => m ()
+drawScene :: (R m, S m, Renderer m, HasInput m, MonadIO m) => m ()
 drawScene = do
   V2 x y <- gets vCenter
-  current <- gets vCurrent
+  current <- getCurrent
   origin <- gets vOrigin
   outline <- gets vOutline
   accel <- gets vAccel
@@ -229,7 +245,7 @@ drawScene = do
   infoShown <- gets vInfoShown
   scale <- gets vScale
   let scalar = scalarToSpriteScale scale
-  loaded' <- gets vLoaded 
+  loaded' <- getLoaded 
   highDpi <- asks cHighDpi
   let lineSpacing = lineSpacing' highDpi
   case loaded' of

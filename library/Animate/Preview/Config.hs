@@ -2,10 +2,14 @@
 module Animate.Preview.Config where
 
 import qualified SDL
+import qualified Animate
+import Data.Text (Text)
 import Linear
 import Control.Monad.Reader (MonadReader)
 import Data.Word (Word32)
+import Control.Concurrent
 
+import Animate.Preview.Animation
 import Animate.Preview.Resource
 
 data Settings = Settings
@@ -15,6 +19,18 @@ data Settings = Settings
   , sCenter :: V2 Int
   }
 
+data Loaded = Loaded
+  { lTextToInt :: Text -> Maybe Int
+  , lIntToText :: Int -> Text
+  , lSpriteSheet :: Animate.SpriteSheet Int SDL.Texture Seconds
+  , lTotalKeys :: Int
+  }
+
+data Current = Current
+  { cPos :: Animate.Position Int Seconds
+  , cKeyName :: Text
+  } deriving (Show, Eq)
+
 data Config = Config
   { cWindow :: SDL.Window
   , cRenderer :: SDL.Renderer
@@ -23,6 +39,8 @@ data Config = Config
   , cOrgWinSize :: V2 Int
   , cHighDpi :: Bool
   , cSettings :: Settings
+  , cCurrent :: MVar (Maybe Current)
+  , cLoaded :: MVar (Maybe Loaded)
   }
 
 type R m = MonadReader Config m

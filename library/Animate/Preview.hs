@@ -10,10 +10,14 @@ import qualified SDL.Font as Font
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
 import Control.Monad.State (MonadState, StateT, evalStateT)
+import Control.Monad (when, forever, void)
+import Control.Concurrent (threadDelay, forkIO, newMVar)
 import Control.Exception.Safe (MonadThrow, MonadCatch)
 import Data.Maybe (fromMaybe)
 import Options.Generic
 import SDL.Vect
+import System.FSNotify (withManager, watchDir, Event(..), eventPath)
+import System.FilePath (takeDirectory, takeFileName)
 
 import Animate.Preview.Config
 import Animate.Preview.Logger
@@ -35,6 +39,7 @@ data Options = Options
   , height :: (Maybe Int) <?> "Window height (Minimum is 100 pixels)"
   , scale :: (Maybe Float) <?> "Scale the sprite size"
   , highDpi :: Bool <?> "Use high DPI"
+  , watch :: Bool <?> "Watch files and reload on change"
   } deriving (Show, Generic)
 
 instance ParseRecord Options where
@@ -53,6 +58,8 @@ main = do
   window <- SDL.createWindow "Animate Preview" SDL.defaultWindow { SDL.windowInitialSize = fromIntegral <$> windowSize, SDL.windowHighDPI = highDpi' }
   renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
   resources <- loadResources highDpi' renderer
+  loaded <- newMVar Nothing
+  current <- newMVar Nothing
 
   windowSize' <- fmap fromIntegral <$> SDL.glGetDrawableSize window
   let windowCenter = div <$> windowSize' <*> 2
@@ -71,12 +78,34 @@ main = do
         , cWinSize = windowSize'
         , cOrgWinSize = windowSize
         , cHighDpi = highDpi'
-        , cSettings = settings }
-  runAnimatePreview cfg (initVars windowCenter) (reload >> mainLoop)
+        , cSettings = settings
+        , cCurrent = current
+        , cLoaded = loaded
+        }
+
+  when (unHelpful $ watch options) $ do
+    runWatcherAndReloader cfg (sJSON settings)
+    case sSpritesheet settings of
+      Nothing -> return ()
+      Just imgPath -> runWatcherAndReloader cfg imgPath
+  
+  let v = initVars windowCenter
+  runAnimatePreview cfg v (reload >> mainLoop)
   SDL.destroyWindow window
   freeResources resources
   Font.quit
   SDL.quit
+
+runWatcherAndReloader :: Config -> String -> IO ()
+runWatcherAndReloader cfg filename = void $ forkIO $ withManager $ \mgr -> do
+  -- start a watching job (in the background)
+  void $ watchDir
+    mgr
+    (takeDirectory filename)
+    (\event -> takeFileName (eventPath event) == takeFileName filename)
+    (\_ -> runWatcher cfg reload)
+  -- sleep forever (until interrupted)
+  forever $ threadDelay 1000000
 
 newtype AnimatePreview a = AnimatePreview (ReaderT Config (StateT Vars IO) a)
   deriving (Functor, Applicative, Monad, MonadReader Config, MonadState Vars, MonadIO, MonadThrow, MonadCatch)
@@ -92,3 +121,12 @@ instance Renderer AnimatePreview
 instance Scene AnimatePreview
 instance Loader AnimatePreview
 instance Timer AnimatePreview
+
+newtype Watcher a = Watcher (ReaderT Config IO a)
+  deriving (Functor, Applicative, Monad, MonadReader Config, MonadIO, MonadThrow, MonadCatch)
+
+instance Logger Watcher
+instance Loader Watcher
+
+runWatcher :: Config -> Watcher a -> IO a
+runWatcher cfg (Watcher m) = runReaderT m cfg

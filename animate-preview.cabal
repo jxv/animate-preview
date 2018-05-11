@@ -2,7 +2,7 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 63adc94308c300003ed09be8c39ec68d63fa76278d05bb9727c461507d688f32
+-- hash: e42a7e0b2a8c28c15b434795546fa54a5b6690ec23c77eeb50e7ab598da1a3d2
 
 name:           animate-preview
 version:        0.0.0
@@ -42,6 +42,7 @@ library
     , base >=4.7 && <5
     , bytestring
     , containers
+    , filepath
     , fsnotify
     , key-state
     , lens

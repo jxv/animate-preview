@@ -5,8 +5,8 @@ import qualified Data.Vector as V
 import qualified SDL
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Applicative ((<|>))
-import Control.Monad.State (modify)
 import Control.Monad.Reader (asks)
+import Control.Concurrent (modifyMVar_, readMVar)
 import Data.Text.Conversions (toText)
 import Data.Maybe (fromMaybe)
 import System.IO.Error
@@ -20,7 +20,7 @@ import Animate.Preview.Logger
 
 class Monad m => Loader m where
   load :: m Bool
-  default load :: (R m, S m, MonadIO m, Logger m) => m Bool
+  default load :: (R m, MonadIO m, Logger m) => m Bool
   load = do
     ren <- asks cRenderer
     json <- asks (sJSON . cSettings)
@@ -30,7 +30,7 @@ class Monad m => Loader m where
       (const $ return Nothing)
     case spriteSheetInfo :: Maybe (Animate.SpriteSheetInfo Int Seconds) of
       Nothing -> do
-        modify $ \v -> v { vLoaded = Nothing }
+        setLoaded Nothing
         logText $ "Not Loaded: " `mappend` toText json
         return False
       Just ssi -> do
@@ -40,14 +40,14 @@ class Monad m => Loader m where
         let animations = Animate.ssiAnimations ssi'
         if Map.null animations
           then do
-            modify $ \v -> v { vLoaded = Nothing }
+            setLoaded Nothing
             logText $ "No Animations: " `mappend` toText json
             return False
           else do
             tex' <- liftIO $ loadTexture ren (Animate.ssiImage ssi') (Animate.ssiAlpha ssi')
             case tex' of
               Nothing -> do
-                modify $ \v -> v { vLoaded = Nothing }
+                setLoaded Nothing
                 logText $ "No Image: " `mappend` toText (Animate.ssiImage ssi')
                 return False
               Just tex -> do
@@ -61,7 +61,7 @@ class Monad m => Loader m where
                 let spriteSheet = Animate.SpriteSheet animations' tex
                 let totalKeys = V.length $ Animate.unAnimations animations'
                 let loaded = Loaded textToInt intToText spriteSheet totalKeys
-                modify $ \v -> v { vLoaded = Just loaded }
+                setLoaded (Just loaded)
                 logText $ "Loaded: " `mappend` toText json
                 return True
     where
@@ -73,3 +73,13 @@ class Monad m => Loader m where
             t <- SDL.createTextureFromSurface r s
             SDL.freeSurface s
             return (Just t)
+
+setLoaded :: (R m, MonadIO m) => Maybe Loaded -> m ()
+setLoaded l = do
+  m <- asks cLoaded
+  liftIO $ modifyMVar_ m (\_ -> return l)
+
+getLoaded :: (R m, MonadIO m) => m (Maybe Loaded)
+getLoaded = do
+  m <- asks cLoaded
+  liftIO $ readMVar m

@@ -6,21 +6,16 @@ import qualified SDL
 import qualified Animate
 import Data.Text (Text)
 import Control.Lens
-import Control.Monad.State (MonadState)
+import Control.Concurrent (putMVar)
+import Control.Monad.State (MonadState, gets)
 import Linear
+import Control.Concurrent
 
 import Animate.Preview.Animation
 import Animate.Preview.Input
 import Animate.Preview.Color
 import Animate.Preview.Scalar
 import Animate.Preview.Mode
-
-data Loaded = Loaded
-  { lTextToInt :: Text -> Maybe Int
-  , lIntToText :: Int -> Text
-  , lSpriteSheet :: Animate.SpriteSheet Int SDL.Texture Seconds
-  , lTotalKeys :: Int
-  }
 
 data Vars = Vars
   { vInput :: Input
@@ -32,14 +27,7 @@ data Vars = Vars
   , vScale :: Scalar
   , vInfoShown :: Bool
   , vMode :: Mode
-  , vCurrent :: Maybe Current
-  , vLoaded :: Maybe Loaded
   }
-
-data Current = Current
-  { cPos :: Animate.Position Int Seconds
-  , cKeyName :: Text
-  } deriving (Show, Eq)
 
 initVars :: V2 Int -> Vars
 initVars center = Vars
@@ -52,8 +40,6 @@ initVars center = Vars
   , vScale = Scalar'None
   , vInfoShown = True
   , vMode = Mode'Playback
-  , vCurrent = Nothing
-  , vLoaded = Nothing
   }
 
 makeClassy ''Vars
