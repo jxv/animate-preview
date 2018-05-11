@@ -15,5 +15,5 @@ class Monad m => Timer m where
   default delayTicks :: MonadIO m => Int -> m ()
   delayTicks start = liftIO $ do
     end <- fromIntegral <$> SDL.ticks
-    let ms = (msps - (end - start) * fps) `div` fps
+    let ms = (msps - (end -start) * fps) `div` fps
     when (ms > 0) (SDL.delay $ fromIntegral ms)

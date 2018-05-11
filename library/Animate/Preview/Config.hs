@@ -4,9 +4,7 @@ module Animate.Preview.Config where
 import qualified SDL
 import qualified Animate
 import Data.Text (Text)
-import Linear
 import Control.Monad.Reader (MonadReader)
-import Data.Word (Word32)
 import Control.Concurrent
 
 import Animate.Preview.Animation

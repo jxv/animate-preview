@@ -3,6 +3,7 @@ module Animate.Preview.Renderer where
 import qualified Animate
 import qualified SDL
 import qualified SDL.Primitive as Gfx
+import qualified Data.Map as Map
 import Foreign.C.Types
 import SDL.Vect
 import Control.Monad.Reader (asks)
@@ -12,7 +13,9 @@ import Data.Maybe (fromMaybe)
 import Data.StateVar (($=))
 import Foreign.C.Types (CFloat(..))
 import Data.Text (Text)
+import Data.Text.Conversions (fromText)
 import Data.StateVar (get)
+import Data.List (foldl')
 
 import Animate.Preview.Config
 import Animate.Preview.Resource
@@ -77,14 +80,29 @@ class Monad m => Renderer m where
   drawText :: (Int, Int) -> Text -> m ()
   default drawText :: (SDLRenderer m, R m, MonadIO m) => (Int, Int) -> Text -> m ()
   drawText xy text = do
-    ren <- asks cRenderer
-    font <- asks (rFont . cResources)
-    highDpi <- asks cHighDpi
-    tex <- liftIO $ createText highDpi ren font text
-    drawTextureSprite (const tex) xy
-    SDL.destroyTexture tex
+    glyphMap <- asks (rGlyphMap . cResources)
+    glyphSize <- asks (rGlyphSize . cResources)
+    let instructions = buildGlyphIntructions glyphSize glyphMap (fromText text)
+    let (x,y) = xy
+    flip mapM_ instructions $ \(tex, (x',y')) -> do
+      let xy' = (x + x', y + y')
+      drawTextureSprite (const tex) xy'
 
-----
+buildGlyphIntructions :: Int -> Map.Map Char Glyph -> [Char] -> [(SDL.Texture, (Int, Int))]
+buildGlyphIntructions _glyphSize glyphMap str = fst $ foldl' appendGlyph ([], (0,0)) str
+  where
+    appendGlyph
+      :: ([(SDL.Texture, (Int, Int))], (Int,Int))
+      -> Char
+      -> ([(SDL.Texture, (Int, Int))], (Int,Int)) 
+    appendGlyph (glyphs, (x,y)) ch = case Map.lookup ch glyphMap of
+      Nothing -> (glyphs, (x,y))
+      Just glyph -> let
+        tex = gTexture glyph
+        (xmin, _xmax, _ymin, _ymax, adv) = gMetrics glyph
+        x' = x + xmin
+        y' = y
+        in ((tex, (x', y')) : glyphs, (x + xmin + adv, y))
 
 drawTextureSprite :: (SDLRenderer m, R m) => (Config -> SDL.Texture) -> (Int, Int) -> m ()
 drawTextureSprite getTex (x,y) = do

@@ -6,7 +6,10 @@ import qualified SDL.Image as Image
 import qualified Animate
 import qualified SDL.Raw.Video as Raw
 import qualified SDL.Internal.Numbered as Numbered
+import qualified Data.Map as Map
+import Control.Monad (filterM)
 import Data.Text (Text)
+import Data.Maybe (catMaybes)
 import Data.StateVar (($=))
 import SDL.Vect
 import System.IO.Error (catchIOError)
@@ -14,6 +17,14 @@ import Paths_animate_preview (getDataFileName)
 
 data Resources = Resources
   { rFont :: Font.Font
+  , rGlyphMap :: Map.Map Char Glyph
+  , rGlyphSize :: Int
+  }
+
+data Glyph = Glyph
+  { gChar :: Char
+  , gMetrics :: (Int, Int, Int, Int, Int)
+  , gTexture :: SDL.Texture
   }
 
 -- | Produce a new 'SDL.Surface' based on an existing one, but
@@ -55,12 +66,42 @@ createText highDpi ren font text = do
   SDL.freeSurface outline
   return tex
 
+createGlyph :: Bool -> SDL.Renderer -> Font.Font -> Char -> IO (Maybe Glyph)
+createGlyph highDpi ren font ch = do
+  metrics' <- Font.glyphMetrics font ch
+  --
+  case metrics' of
+    Nothing -> return Nothing
+    Just metrics@(xmin, xmax, _ymin, _ymax, _adv) -> do
+      if (xmax - xmin > 0) || ch == ' '
+        then do
+          Font.setHinting font Font.None
+          Font.setOutline font (if highDpi then 4 else 2)
+          outline <- Font.solidGlyph font (V4 0 0 0 0) ch
+          Font.setOutline font 0
+          inline <- Font.solidGlyph font (V4 255 255 255 255) ch
+          _ <- SDL.surfaceBlit inline Nothing outline (Just $ SDL.P (if highDpi then 4 else 2))
+          tex <- SDL.createTextureFromSurface ren outline
+          SDL.freeSurface inline
+          SDL.freeSurface outline
+          --
+          return . Just $ Glyph ch metrics tex
+        else return Nothing
+
 loadResources :: Bool -> SDL.Renderer -> IO Resources
-loadResources highDpi _renderer = do
+loadResources highDpi ren = do
   fileName <- getDataFileName "resource/ProggyClean.ttf"
-  font <- Font.load fileName (if highDpi then 32 else 16)
+  let glyphSize = if highDpi then 32 else 16
+  font <- Font.load fileName glyphSize
+  putStrLn "Font cache: filtering glyphs"
+  availableChars <- filterM (Font.glyphProvided font) [minBound..maxBound]
+  putStrLn "Font cache: creating textures"
+  glyphs <- mapM (createGlyph highDpi ren font) (' ':availableChars)
+  let glyphs' = map (\g -> (gChar g, g)) (catMaybes glyphs)
   return Resources
     { rFont = font
+    , rGlyphMap = Map.fromList glyphs'
+    , rGlyphSize = glyphSize
     }
 
 freeResources :: Resources -> IO ()

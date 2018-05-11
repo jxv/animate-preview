@@ -2,7 +2,6 @@ module Animate.Preview.SDLInput where
 
 import qualified SDL
 import Control.Monad.IO.Class (MonadIO(..))
-import Control.Monad.Reader (asks)
 import Control.Monad.State (gets)
 import Linear
 

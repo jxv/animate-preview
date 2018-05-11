@@ -2,16 +2,10 @@
 {-# LANGUAGE ConstraintKinds #-}
 module Animate.Preview.State where
 
-import qualified SDL
-import qualified Animate
-import Data.Text (Text)
 import Control.Lens
-import Control.Concurrent (putMVar)
-import Control.Monad.State (MonadState, gets)
+import Control.Monad.State (MonadState)
 import Linear
-import Control.Concurrent
 
-import Animate.Preview.Animation
 import Animate.Preview.Input
 import Animate.Preview.Color
 import Animate.Preview.Scalar

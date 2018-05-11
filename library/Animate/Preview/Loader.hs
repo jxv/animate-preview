@@ -14,7 +14,6 @@ import System.IO.Error
 import qualified Animate
 import Animate.Preview.Animation
 import Animate.Preview.Resource
-import Animate.Preview.State
 import Animate.Preview.Config
 import Animate.Preview.Logger
 
