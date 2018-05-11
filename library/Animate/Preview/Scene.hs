@@ -47,10 +47,14 @@ updateKeyFrame = do
     Nothing -> return ()
     Just loaded -> do
       let animations = (Animate.ssAnimations . lSpriteSheet) loaded
-      when (isPressed $ iNextKeyFrame input) $ modifyCurrent' $ \c ->
-        c { cPos = Animate.initPosition $ unsafeNextKey (Animate.pKey $ cPos c) animations }
-      when (isPressed $ iPrevKeyFrame input) $ modifyCurrent' $ \c ->
-        c { cPos = Animate.initPosition $ unsafePrevKey (Animate.pKey $ cPos c) animations }
+      when (isPressed $ iNextKeyFrame input) $ modifyCurrent' $ \c -> let
+        key = unsafeNextKey (Animate.pKey $ cPos c) animations
+        keyName = lIntToText loaded key
+        in Current (Animate.initPosition key) keyName
+      when (isPressed $ iPrevKeyFrame input) $ modifyCurrent' $ \c -> let
+        key = unsafePrevKey (Animate.pKey $ cPos c) animations
+        keyName = lIntToText loaded key
+        in Current (Animate.initPosition key) keyName
 
 unsafeNextKey :: Int -> Animate.Animations a b c -> Int
 unsafeNextKey n (Animate.Animations a) = (1 + n) `mod` (V.length a)
