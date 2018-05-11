@@ -20,26 +20,30 @@ import Animate.Preview.Mode
 data Vars = Vars
   { vInput :: Input
   , vBackground :: Mono
-  , vOrigin :: Maybe Color
-  , vOutline :: Maybe Color
-  , vCenter :: V2 Int
+  , vOriginColor :: Maybe Color
+  , vOutlineColor :: Maybe Color
+  , vOrigin :: V2 Int
   , vAccel :: Scalar
   , vScale :: Scalar
   , vInfoShown :: Bool
   , vMode :: Mode
+  , vDrawSize :: V2 Int
+  , vWinSize :: V2 Int
   }
 
-initVars :: V2 Int -> Vars
-initVars center = Vars
+initVars :: V2 Int -> V2 Int -> Vars
+initVars winSize drawSize = Vars
   { vInput = initInput
   , vBackground = Mono'Gray
-  , vOrigin = Just Color'Red
-  , vOutline = Just Color'Green
-  , vCenter = center
+  , vOriginColor = Just Color'Red
+  , vOutlineColor = Just Color'Green
+  , vOrigin = div <$> drawSize <*> 2
   , vAccel = Scalar'None
   , vScale = Scalar'None
   , vInfoShown = True
   , vMode = Mode'Playback
+  , vWinSize = winSize
+  , vDrawSize = drawSize
   }
 
 makeClassy ''Vars

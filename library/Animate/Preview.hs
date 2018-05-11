@@ -16,7 +16,7 @@ import Control.Exception.Safe (MonadThrow, MonadCatch)
 import Data.Maybe (fromMaybe)
 import Options.Generic
 import SDL.Vect
-import System.FSNotify (withManager, watchDir, Event(..), eventPath)
+import System.FSNotify (withManager, watchDir, eventPath)
 import System.FilePath (takeDirectory, takeFileName)
 
 import Animate.Preview.Config
@@ -55,28 +55,30 @@ main = do
 
   SDL.initialize [SDL.InitVideo]
   Font.initialize
-  window <- SDL.createWindow "Animate Preview" SDL.defaultWindow { SDL.windowInitialSize = fromIntegral <$> windowSize, SDL.windowHighDPI = highDpi' }
+  window <- SDL.createWindow
+    "Animate Preview"
+    SDL.defaultWindow
+      { SDL.windowInitialSize = fromIntegral <$> windowSize
+      , SDL.windowHighDPI = highDpi'
+      , SDL.windowResizable = True
+      }
   renderer <- SDL.createRenderer window (-1) SDL.defaultRenderer
   resources <- loadResources highDpi' renderer
   loaded <- newMVar Nothing
   current <- newMVar Nothing
 
-  windowSize' <- fmap fromIntegral <$> SDL.glGetDrawableSize window
-  let windowCenter = div <$> windowSize' <*> 2
+  drawSize <- fmap fromIntegral <$> SDL.glGetDrawableSize window
 
   let settings = Settings
         { sJSON = unHelpful $ target options
         , sSpritesheet = unHelpful $ image options
         , sScale = fromMaybe 1 (unHelpful $ scale options)
-        , sCenter = windowCenter
         }
 
   let cfg = Config
         { cWindow = window
         , cRenderer = renderer
         , cResources = resources
-        , cWinSize = windowSize'
-        , cOrgWinSize = windowSize
         , cHighDpi = highDpi'
         , cSettings = settings
         , cCurrent = current
@@ -89,7 +91,7 @@ main = do
       Nothing -> return ()
       Just imgPath -> runWatcherAndReloader cfg imgPath
   
-  let v = initVars windowCenter
+  let v = initVars windowSize drawSize
   runAnimatePreview cfg v (reload >> mainLoop)
   SDL.destroyWindow window
   freeResources resources

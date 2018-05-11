@@ -3,9 +3,10 @@ module Animate.Preview.SDLInput where
 import qualified SDL
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Reader (asks)
+import Control.Monad.State (gets)
 import Linear
 
-import Animate.Preview.Config
+import Animate.Preview.State
 
 keycodePressed :: SDL.Keycode -> SDL.EventPayload -> Bool
 keycodePressed keycode event = case event of
@@ -29,12 +30,12 @@ class Monad m => SDLInput m where
   pollEventPayloads = liftIO $ map SDL.eventPayload <$> SDL.pollEvents
 
   getMousePos :: m (V2 Int)
-  default getMousePos :: (R m, MonadIO m) => m (V2 Int)
+  default getMousePos :: (S m, MonadIO m) => m (V2 Int)
   getMousePos = do
-    winSize <- asks cWinSize
-    orgWinSize <- asks cOrgWinSize
+    drawSize <- gets vDrawSize
+    winSize <- gets vWinSize
     SDL.P pos <- liftIO SDL.getAbsoluteMouseLocation
-    let pos' = div <$> ((*) <$> winSize <*> (fmap fromIntegral pos)) <*> orgWinSize
+    let pos' = div <$> ((*) <$> drawSize <*> (fmap fromIntegral pos)) <*> winSize
     return $ fmap fromIntegral pos'
 
   getMouseClick :: m Bool

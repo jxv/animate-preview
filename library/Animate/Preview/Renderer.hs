@@ -5,34 +5,45 @@ import qualified SDL
 import qualified SDL.Primitive as Gfx
 import Foreign.C.Types
 import SDL.Vect
-import Control.Monad.Reader
+import Control.Monad.Reader (asks)
+import Control.Monad.State (modify)
 import Control.Monad.IO.Class (MonadIO(..))
 import Data.Maybe (fromMaybe)
 import Data.StateVar (($=))
 import Foreign.C.Types (CFloat(..))
 import Data.Text (Text)
+import Data.StateVar (get)
 
 import Animate.Preview.Config
 import Animate.Preview.Resource
 import Animate.Preview.Animation
 import Animate.Preview.Color
 import Animate.Preview.SDLRenderer
+import Animate.Preview.State
 
 class Monad m => Renderer m where
+  updateScreenInfo :: m ()
+  default updateScreenInfo :: (R m, S m, MonadIO m) => m ()
+  updateScreenInfo = do
+    w <- asks cWindow
+    drawSize <- liftIO $ get (SDL.windowSize w)
+    winSize <- liftIO $ SDL.glGetDrawableSize w
+    modify $ \v -> v { vDrawSize = fromIntegral <$> drawSize, vWinSize = fromIntegral <$> winSize }
+
   clearScreen :: m ()
-  default clearScreen :: (SDLRenderer m, MonadReader Config m) => m ()
+  default clearScreen :: (SDLRenderer m, R m) => m ()
   clearScreen = do
     renderer <- asks cRenderer
     clearRenderer renderer
 
   drawScreen :: m ()
-  default drawScreen :: (SDLRenderer m, MonadReader Config m) => m ()
+  default drawScreen :: (SDLRenderer m, R m) => m ()
   drawScreen = do
     renderer <- asks cRenderer
     presentRenderer renderer
 
   drawBackground :: V2 Int -> Mono -> m ()
-  default drawBackground :: (SDLRenderer m, MonadReader Config m, MonadIO m) => V2 Int -> Mono -> m ()
+  default drawBackground :: (SDLRenderer m, R m, MonadIO m) => V2 Int -> Mono -> m ()
   drawBackground (V2 w h) mono = do
     renderer <- asks cRenderer
     let (lite, dark) = fromMono mono
@@ -110,7 +121,7 @@ drawSprite ss outline scalar' clip (x,y) = do
   -- reset scale from sprite
   liftIO $ SDL.rendererScale renderer $= (V2 1 1)
 
-getSpriteAnimations :: (MonadReader Config m) => (Config -> Animate.SpriteSheet key SDL.Texture Seconds) -> m (Animations key)
+getSpriteAnimations :: R m => (Config -> Animate.SpriteSheet key SDL.Texture Seconds) -> m (Animations key)
 getSpriteAnimations ss = asks (Animate.ssAnimations . ss)
 
 rectFromClip :: Animate.SpriteClip key -> SDL.Rectangle CInt

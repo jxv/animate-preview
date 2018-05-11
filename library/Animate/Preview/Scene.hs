@@ -2,7 +2,7 @@ module Animate.Preview.Scene where
 
 import qualified Animate
 import qualified Data.Vector as V
-import Control.Concurrent (putMVar, readMVar, modifyMVar_)
+import Control.Concurrent (readMVar, modifyMVar_)
 import Control.Monad (when)
 import Control.Monad.IO.Class (MonadIO(liftIO))
 import Control.Monad.Reader (asks)
@@ -112,7 +112,7 @@ updateAnimation = do
       current' <- getCurrent
       case current' of
         Nothing -> return ()
-        Just c@Current{cPos=pos} -> case mode of
+        Just Current{cPos=pos} -> case mode of
           Mode'Stepper -> do
             input <- getInput
             when (onceThenFire $ iFaster input) $ modifyCurrent' $ \c -> c { cPos = forceNextFrameIndex animations pos }
@@ -214,17 +214,17 @@ updateOrigin = do
   input <- getInput
   -- Move with keys
   let d = 5
-  when (onceThenFire $ iUp input) $ modify $ \v -> v { vCenter = vCenter v + V2 0 (-d) }
-  when (onceThenFire $ iDown input) $ modify $ \v -> v { vCenter = vCenter v + V2 0 d }
-  when (onceThenFire $ iLeft input) $ modify $ \v -> v { vCenter = vCenter v + V2 (-d) 0 }
-  when (onceThenFire $ iRight input) $ modify $ \v -> v { vCenter = vCenter v + V2 d 0 }
+  when (onceThenFire $ iUp input) $ modify $ \v -> v { vOrigin = vOrigin v + V2 0 (-d) }
+  when (onceThenFire $ iDown input) $ modify $ \v -> v { vOrigin = vOrigin v + V2 0 d }
+  when (onceThenFire $ iLeft input) $ modify $ \v -> v { vOrigin = vOrigin v + V2 (-d) 0 }
+  when (onceThenFire $ iRight input) $ modify $ \v -> v { vOrigin = vOrigin v + V2 d 0 }
   -- Recenter origin
   when (isPressed $ iCenterOrigin input) $ do
-    center <- asks (sCenter . cSettings)
-    modify $ \v -> v { vCenter = center }
+    drawSize <- gets vDrawSize
+    modify $ \v -> v { vOrigin = div <$> drawSize <*> 2 }
   -- Origin by mouse click
   when (isTouched $ iMouseClick input) $ modify $ \v -> v
-   { vCenter = iMousePos input }
+   { vOrigin = iMousePos input }
 
 toggleVisuals :: (S m, HasInput m) => m ()
 toggleVisuals = do
@@ -234,16 +234,16 @@ toggleVisuals = do
   let toggleOutline = isPressed (iOutline input)
   modify $ (\v -> v
     { vBackground = (if toggleBackground then toggleMono else id) (vBackground v)
-    , vOrigin = (if toggleOrigin then toggleColors else id) (vOrigin v)
-    , vOutline = (if toggleOutline then toggleColors else id) (vOutline v)
+    , vOriginColor = (if toggleOrigin then toggleColors else id) (vOriginColor v)
+    , vOutlineColor = (if toggleOutline then toggleColors else id) (vOutlineColor v)
     })
 
 drawScene :: (R m, S m, Renderer m, HasInput m, MonadIO m) => m ()
 drawScene = do
-  V2 x y <- gets vCenter
+  V2 x y <- gets vOrigin
   current <- getCurrent
-  origin <- gets vOrigin
-  outline <- gets vOutline
+  originColor <- gets vOriginColor
+  outlineColor <- gets vOutlineColor
   accel <- gets vAccel
   mode <- gets vMode
   infoShown <- gets vInfoShown
@@ -279,7 +279,7 @@ drawScene = do
           let framesLen = V.length frames
           let totalSeconds = sum $ map Animate.fDelay (V.toList frames)
           let loc = Animate.currentLocation animations pos
-          drawAniSprite (lSpriteSheet loaded) outline scalar loc (x, y)
+          drawAniSprite (lSpriteSheet loaded) outlineColor scalar loc (x, y)
           when infoShown $ do
             let keyName = cKeyName c
             drawText (ofsX, ofsY + lineSpacing * 4)  $ toText $ concat ["Anim:"]
@@ -293,9 +293,9 @@ drawScene = do
             drawText (ofsX, ofsY + lineSpacing * 12) $ toText $ concat $ ["  Offset: "] ++ case Animate.scOffset frameClip of
               Nothing -> []
               Just (ox,oy) -> ["(", show ox, ",", show oy, ")"]
-  case origin of
+  case originColor of
     Nothing -> return ()
-    Just origin' -> drawCrosshair (x,y) origin'
+    Just originColor' -> drawCrosshair (x,y) originColor'
   -- HUD
   when infoShown $ do
     settings <- asks cSettings

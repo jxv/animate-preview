@@ -16,7 +16,6 @@ data Settings = Settings
   { sJSON :: String
   , sSpritesheet :: Maybe String
   , sScale :: Float
-  , sCenter :: V2 Int
   }
 
 data Loaded = Loaded
@@ -35,8 +34,6 @@ data Config = Config
   { cWindow :: SDL.Window
   , cRenderer :: SDL.Renderer
   , cResources :: Resources
-  , cWinSize :: V2 Int
-  , cOrgWinSize :: V2 Int
   , cHighDpi :: Bool
   , cSettings :: Settings
   , cCurrent :: MVar (Maybe Current)
