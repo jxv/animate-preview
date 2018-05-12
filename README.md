@@ -1,5 +1,19 @@
 # Animate Preview
 
+## Usage
+
+```
+Usage: animate-preview --target STRING [--image STRING] [--high-dpi] [--watch]
+
+Available options:
+  -h,--help                Show this help text
+  --target STRING          File path with sprite information (YAML or JSON)
+  --image STRING           Force sprite sheet's file path
+  --high-dpi               Use high DPI (if available)
+  --watch                  Watch target and image files, and automatically
+                           reload files when changed
+```
+
 ## Commands
 
 ### General

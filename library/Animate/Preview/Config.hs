@@ -13,7 +13,6 @@ import Animate.Preview.Resource
 data Settings = Settings
   { sTarget :: String
   , sSpritesheet :: Maybe String
-  , sScale :: Float
   }
 
 data Loaded = Loaded

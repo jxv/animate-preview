@@ -33,11 +33,10 @@ import Animate.Preview.State
 import Animate.Preview.Timer
 
 data Options = Options
-  { target :: String  <?> "file path with sprite data (YAML or JSON)"
-  , image :: (Maybe String) <?> "Force sprite sheet image path"
-  , scale :: (Maybe Float) <?> "Scale the sprite size"
-  , highDpi :: Bool <?> "Use high DPI"
-  , watch :: Bool <?> "Watch files and reload on change"
+  { target :: String  <?> "File path with sprite information (YAML or JSON)"
+  , image :: (Maybe String) <?> "Force sprite sheet's file path"
+  , highDpi :: Bool <?> "Use high DPI (if available)"
+  , watch :: Bool <?> "Watch target and image files, and automatically reload files when changed"
   } deriving (Show, Generic)
 
 instance ParseRecord Options where
@@ -67,7 +66,6 @@ main = do
   let settings = Settings
         { sTarget = unHelpful $ target options
         , sSpritesheet = unHelpful $ image options
-        , sScale = fromMaybe 1 (unHelpful $ scale options)
         }
 
   let cfg = Config
