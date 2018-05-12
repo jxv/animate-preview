@@ -36,7 +36,8 @@ data Options = Options
   { target :: String  <?> "File path with sprite information (YAML or JSON)"
   , image :: (Maybe String) <?> "Force sprite sheet's file path"
   , highDpi :: Bool <?> "Use high DPI (if available)"
-  , watch :: Bool <?> "Watch target and image files, and automatically reload files when changed"
+  , fps :: (Maybe Int) <?> "Force frames per second (default: 60)"
+  , watch :: Bool <?> "Watch target and image files. Automatically reload files when changed"
   } deriving (Show, Generic)
 
 instance ParseRecord Options where
@@ -46,6 +47,7 @@ main :: IO ()
 main = do
   options <- getRecord "options"
   let highDpi' = unHelpful $ highDpi options
+  let fps' = max 1 (fromMaybe 60 (unHelpful $ fps options))
 
   SDL.initialize [SDL.InitVideo]
   Font.initialize
@@ -76,6 +78,8 @@ main = do
         , cSettings = settings
         , cCurrent = current
         , cLoaded = loaded
+        , cFps = fps'
+        , cFrameDeltaSeconds = 1.0 / fromIntegral fps'
         }
 
   when (unHelpful $ watch options) $ do

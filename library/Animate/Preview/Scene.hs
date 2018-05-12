@@ -15,7 +15,6 @@ import Animate.Preview.Animation
 import Animate.Preview.Config
 import Animate.Preview.Renderer
 import Animate.Preview.Input
-import Animate.Preview.Frame
 import Animate.Preview.State
 import Animate.Preview.ManagerInput
 import Animate.Preview.Color
@@ -105,6 +104,7 @@ updateAnimation :: (R m, S m, Renderer m, HasInput m, MonadIO m) => m ()
 updateAnimation = do
   mode <- gets vMode
   loaded' <- getLoaded 
+  frameDeltaSeconds <- asks cFrameDeltaSeconds
   case loaded' of
     Nothing -> return ()
     Just loaded -> do
@@ -244,6 +244,7 @@ drawScene = do
   current <- getCurrent
   originColor <- gets vOriginColor
   outlineColor <- gets vOutlineColor
+  fps <- asks cFps
   accel <- gets vAccel
   mode <- gets vMode
   infoShown <- gets vInfoShown
@@ -254,15 +255,15 @@ drawScene = do
   let lineSpacing = lineSpacing' highDpi
   case loaded' of
     Nothing -> when infoShown $ do
-      drawText (ofsX, ofsY + lineSpacing * 4)  $ toText $ concat ["Anim:"]
-      drawText (ofsX, ofsY + lineSpacing * 5)  $ toText $ concat ["  Key:"]
-      drawText (ofsX, ofsY + lineSpacing * 6)  $ toText $ concat ["  Time:"]
-      drawText (ofsX, ofsY + lineSpacing * 7)  $ toText $ concat ["Pos:"]
-      drawText (ofsX, ofsY + lineSpacing * 8)  $ toText $ concat ["  Frame:"]
-      drawText (ofsX, ofsY + lineSpacing * 9)  $ toText $ concat ["  Time:"]
-      drawText (ofsX, ofsY + lineSpacing * 10) $ toText $ concat ["  Points:"]
-      drawText (ofsX, ofsY + lineSpacing * 11) $ toText $ concat ["  Size:"]
-      drawText (ofsX, ofsY + lineSpacing * 12) $ toText $ concat ["  Offset: "]
+      drawText (ofsX, ofsY + lineSpacing * 5)  $ toText $ concat ["Anim:"]
+      drawText (ofsX, ofsY + lineSpacing * 6)  $ toText $ concat ["  Key:"]
+      drawText (ofsX, ofsY + lineSpacing * 7)  $ toText $ concat ["  Time:"]
+      drawText (ofsX, ofsY + lineSpacing * 8)  $ toText $ concat ["Pos:"]
+      drawText (ofsX, ofsY + lineSpacing * 9)  $ toText $ concat ["  Frame:"]
+      drawText (ofsX, ofsY + lineSpacing * 10)  $ toText $ concat ["  Time:"]
+      drawText (ofsX, ofsY + lineSpacing * 11) $ toText $ concat ["  Points:"]
+      drawText (ofsX, ofsY + lineSpacing * 12) $ toText $ concat ["  Size:"]
+      drawText (ofsX, ofsY + lineSpacing * 13) $ toText $ concat ["  Offset: "]
     Just loaded -> do
       case current of
         Nothing -> return ()
@@ -282,15 +283,15 @@ drawScene = do
           drawAniSprite (lSpriteSheet loaded) outlineColor scalar loc (x, y)
           when infoShown $ do
             let keyName = cKeyName c
-            drawText (ofsX, ofsY + lineSpacing * 4)  $ toText $ concat ["Anim:"]
-            drawText (ofsX, ofsY + lineSpacing * 5)  $ toText $ concat ["  Key: \"", fromText keyName, "\" ", show $ Animate.pKey pos, " [", show $ lTotalKeys loaded - 1, "]"]
-            drawText (ofsX, ofsY + lineSpacing * 6)  $ toText $ concat ["  Time: ", show totalSeconds]
-            drawText (ofsX, ofsY + lineSpacing * 7)  $ toText $ concat ["Pos:"]
-            drawText (ofsX, ofsY + lineSpacing * 8)  $ toText $ concat ["  Frame: ", show $ Animate.pFrameIndex pos,  " [", show $ framesLen - 1, "]"]
-            drawText (ofsX, ofsY + lineSpacing * 9)  $ toText $ concat ["  Time: ", show $ Animate.pCounter pos, " [", show $ frameDelay, "]"]
-            drawText (ofsX, ofsY + lineSpacing * 10) $ toText $ concat ["  Points: (", show x0, ",", show y0, ") (", show x1, ",", show y1, ")"]
-            drawText (ofsX, ofsY + lineSpacing * 11) $ toText $ concat ["  Size: (", show w, ",", show h, ")"]
-            drawText (ofsX, ofsY + lineSpacing * 12) $ toText $ concat $ ["  Offset: "] ++ case Animate.scOffset frameClip of
+            drawText (ofsX, ofsY + lineSpacing * 5)  $ toText $ concat ["Anim:"]
+            drawText (ofsX, ofsY + lineSpacing * 6)  $ toText $ concat ["  Key: \"", fromText keyName, "\" ", show $ Animate.pKey pos, " [", show $ lTotalKeys loaded - 1, "]"]
+            drawText (ofsX, ofsY + lineSpacing * 7)  $ toText $ concat ["  Time: ", show totalSeconds]
+            drawText (ofsX, ofsY + lineSpacing * 8)  $ toText $ concat ["Pos:"]
+            drawText (ofsX, ofsY + lineSpacing * 9)  $ toText $ concat ["  Frame: ", show $ Animate.pFrameIndex pos,  " [", show $ framesLen - 1, "]"]
+            drawText (ofsX, ofsY + lineSpacing * 10)  $ toText $ concat ["  Time: ", show $ Animate.pCounter pos, " [", show $ frameDelay, "]"]
+            drawText (ofsX, ofsY + lineSpacing * 11) $ toText $ concat ["  Points: (", show x0, ",", show y0, ") (", show x1, ",", show y1, ")"]
+            drawText (ofsX, ofsY + lineSpacing * 12) $ toText $ concat ["  Size: (", show w, ",", show h, ")"]
+            drawText (ofsX, ofsY + lineSpacing * 13) $ toText $ concat $ ["  Offset: "] ++ case Animate.scOffset frameClip of
               Nothing -> []
               Just (ox,oy) -> ["(", show ox, ",", show oy, ")"]
   case originColor of
@@ -301,8 +302,9 @@ drawScene = do
     settings <- asks cSettings
     drawText (ofsX, ofsY + lineSpacing * 0) ("Mode: " `mappend` if mode == Mode'Playback then "Playback" else "Stepper")
     drawText (ofsX, ofsY + lineSpacing * 1) ("File: " `mappend` toText (sTarget settings))
-    drawText (ofsX, ofsY + lineSpacing * 2) ("Scale: " `mappend` toText (asScaleString scale))
-    drawText (ofsX, ofsY + lineSpacing * 3) ("Accel: " `mappend` toText (asSpeedString accel))
+    drawText (ofsX, ofsY + lineSpacing * 2) ("FPS: " `mappend` toText (show fps))
+    drawText (ofsX, ofsY + lineSpacing * 3) ("Scale: " `mappend` toText (asScaleString scale))
+    drawText (ofsX, ofsY + lineSpacing * 4) ("Accel: " `mappend` toText (asSpeedString accel))
   where
     lineSpacing' x = if x then 26 else 13
     ofsX = 6

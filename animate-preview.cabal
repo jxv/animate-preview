@@ -2,12 +2,12 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 51d99c14d61a1d85be7c9e79e08619cb9077082c77d374d45595f5a1cc88b81e
+-- hash: 2a1075ed97cba266dad033a75687619badc2e94f4ab5168ea900c407645a82ff
 
 name:           animate-preview
-version:        0.0.0
+version:        0.1.0
 synopsis:       Preview tool for sprite animation
-description:    Preview tool for sprite animation. Use when creating and editing sprite sheets. Previewing reloads on file changes.
+description:    Preview tool for sprite animation
 category:       Game
 homepage:       https://github.com/jxv/animate-preview#readme
 bug-reports:    https://github.com/jxv/animate-preview/issues
@@ -65,7 +65,6 @@ library
       Animate.Preview.Animation
       Animate.Preview.Color
       Animate.Preview.Config
-      Animate.Preview.Frame
       Animate.Preview.Input
       Animate.Preview.Loader
       Animate.Preview.Logger
