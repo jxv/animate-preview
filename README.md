@@ -28,7 +28,13 @@ Available options:
 * `k`/`up arrow`: Move sprite up
 * `h`/`left arrow`: Move sprite left
 * `l`/`right arrow`: Move sprite right
-* `Mouse click` (and drag): Sprite follows mouse cursor 
+* `mouse click` (and drag): Sprite follows mouse cursor 
+* `c`: Center sprite
+
+### Keyframe
+
+* `n`: Next keyframe animation
+* `p`: Previous keyframe animation
 
 ### Speed and Frame position
 
