@@ -3,8 +3,8 @@ version: '0.0.0'
 github: jxv/animate-preview
 license: BSD3
 category: Game
-synopsis: .
-description: .
+synopsis: Preview tool for sprite animation
+description: Preview tool for sprite animation
 maintainer: Joe Vargas
 copyright: 2018 Joe Vargas
 data-files:
