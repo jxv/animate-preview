@@ -11,7 +11,7 @@ import Animate.Preview.Animation
 import Animate.Preview.Resource
 
 data Settings = Settings
-  { sJSON :: String
+  { sTarget :: String
   , sSpritesheet :: Maybe String
   , sScale :: Float
   }

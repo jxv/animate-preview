@@ -300,7 +300,7 @@ drawScene = do
   when infoShown $ do
     settings <- asks cSettings
     drawText (ofsX, ofsY + lineSpacing * 0) ("Mode: " `mappend` if mode == Mode'Playback then "Playback" else "Stepper")
-    drawText (ofsX, ofsY + lineSpacing * 1) ("File: " `mappend` toText (sJSON settings))
+    drawText (ofsX, ofsY + lineSpacing * 1) ("File: " `mappend` toText (sTarget settings))
     drawText (ofsX, ofsY + lineSpacing * 2) ("Scale: " `mappend` toText (asScaleString scale))
     drawText (ofsX, ofsY + lineSpacing * 3) ("Accel: " `mappend` toText (asSpeedString accel))
   where

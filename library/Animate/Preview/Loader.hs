@@ -22,15 +22,15 @@ class Monad m => Loader m where
   default load :: (R m, MonadIO m, Logger m) => m Bool
   load = do
     ren <- asks cRenderer
-    json <- asks (sJSON . cSettings)
+    target <- asks (sTarget . cSettings)
     maybeForceImage <- asks (sSpritesheet . cSettings)
     spriteSheetInfo <- liftIO $ catchIOError
-      (Just <$> Animate.readSpriteSheetInfoJSON json)
+      (Just <$> Animate.readSpriteSheetInfoYAML target)
       (const $ return Nothing)
     case spriteSheetInfo :: Maybe (Animate.SpriteSheetInfo Int Seconds) of
       Nothing -> do
         setLoaded Nothing
-        logText $ "Not Loaded: " `mappend` toText json
+        logText $ "Not Loaded: " `mappend` toText target
         return False
       Just ssi -> do
         let ssi' = ssi
@@ -40,7 +40,7 @@ class Monad m => Loader m where
         if Map.null animations
           then do
             setLoaded Nothing
-            logText $ "No Animations: " `mappend` toText json
+            logText $ "No Animations: " `mappend` toText target
             return False
           else do
             tex' <- liftIO $ loadTexture ren (Animate.ssiImage ssi') (Animate.ssiAlpha ssi')
@@ -61,7 +61,7 @@ class Monad m => Loader m where
                 let totalKeys = V.length $ Animate.unAnimations animations'
                 let loaded = Loaded textToInt intToText spriteSheet totalKeys
                 setLoaded (Just loaded)
-                logText $ "Loaded: " `mappend` toText json
+                logText $ "Loaded: " `mappend` toText target
                 return True
     where
       loadTexture r path c = do

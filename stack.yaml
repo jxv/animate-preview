@@ -4,7 +4,7 @@ packages:
 extra-deps:
 - 'sdl2-mixer-1.1.0'
 - 'sdl2-ttf-2.0.2'
-- 'animate-0.6.0'
+- 'animate-0.6.1'
 - 'key-state-0.2.0'
 flags: {}
 extra-package-dbs: []

@@ -33,7 +33,7 @@ import Animate.Preview.State
 import Animate.Preview.Timer
 
 data Options = Options
-  { target :: String  <?> "file path with sprite data (JSON)"
+  { target :: String  <?> "file path with sprite data (YAML or JSON)"
   , image :: (Maybe String) <?> "Force sprite sheet image path"
   , scale :: (Maybe Float) <?> "Scale the sprite size"
   , highDpi :: Bool <?> "Use high DPI"
@@ -65,7 +65,7 @@ main = do
   drawSize <- fmap fromIntegral <$> SDL.glGetDrawableSize window
 
   let settings = Settings
-        { sJSON = unHelpful $ target options
+        { sTarget = unHelpful $ target options
         , sSpritesheet = unHelpful $ image options
         , sScale = fromMaybe 1 (unHelpful $ scale options)
         }
@@ -81,7 +81,7 @@ main = do
         }
 
   when (unHelpful $ watch options) $ do
-    runWatcherAndReloader cfg (sJSON settings)
+    runWatcherAndReloader cfg (sTarget settings)
     case sSpritesheet settings of
       Nothing -> return ()
       Just imgPath -> runWatcherAndReloader cfg imgPath
