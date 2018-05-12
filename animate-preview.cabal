@@ -7,7 +7,7 @@
 name:           animate-preview
 version:        0.0.0
 synopsis:       Preview tool for sprite animation
-description:    Preview tool for sprite animation
+description:    Preview tool for sprite animation. Use when creating and editing sprite sheets. Previewing reloads on file changes.
 category:       Game
 homepage:       https://github.com/jxv/animate-preview#readme
 bug-reports:    https://github.com/jxv/animate-preview/issues
