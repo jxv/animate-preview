@@ -3,15 +3,17 @@
 ## Usage
 
 ```
-Usage: animate-preview --target STRING [--image STRING] [--high-dpi] [--watch]
+Usage: animate-preview --target STRING [--image STRING] [--high-dpi] [--fps INT]
+                       [--watch]
 
 Available options:
   -h,--help                Show this help text
   --target STRING          File path with sprite information (YAML or JSON)
   --image STRING           Force sprite sheet's file path
   --high-dpi               Use high DPI (if available)
-  --watch                  Watch target and image files, and automatically
-                           reload files when changed
+  --fps INT                Force frames per second (default: 60)
+  --watch                  Watch target and image files. Automatically reload
+                           files when changed
 ```
 
 ## Commands
