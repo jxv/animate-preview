@@ -69,7 +69,12 @@ updateMode = do
 updateReload :: (S m, R m, HasInput m, Loader m, MonadIO m) => m ()
 updateReload = do
   input <- getInput
-  when (isPressed $ iReload input)reload
+  mreload <- asks cReload
+  watchReload <- liftIO $ readMVar mreload
+  when watchReload $ do
+    reload
+    liftIO $ modifyMVar_ mreload $ \_ -> return False
+  when (isPressed $ iReload input) reload
 
 reload :: (R m, Loader m, MonadIO m) => m ()
 reload = do

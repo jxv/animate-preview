@@ -60,8 +60,13 @@ class Monad m => Loader m where
                 let spriteSheet = Animate.SpriteSheet animations' tex
                 let totalKeys = V.length $ Animate.unAnimations animations'
                 let loaded = Loaded textToInt intToText spriteSheet totalKeys
+                oldLoaded <- getLoaded
                 setLoaded (Just loaded)
                 logText $ "Loaded: " `mappend` toText target
+                -- delete previous sprite texture
+                case Animate.ssImage . lSpriteSheet <$> oldLoaded of
+                  Nothing -> return ()
+                  Just i -> SDL.destroyTexture i
                 return True
     where
       loadTexture r path c = do

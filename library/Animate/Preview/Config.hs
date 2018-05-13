@@ -37,6 +37,7 @@ data Config = Config
   , cLoaded :: MVar (Maybe Loaded)
   , cFps :: Int
   , cFrameDeltaSeconds :: Seconds
+  , cReload :: MVar Bool
   }
 
 type R m = MonadReader Config m
