@@ -7,6 +7,8 @@ The viewer automatically reloads the files for speedy turnaround.
 It's recommend to use [`sdl2`](https://github.com/haskell-game/sdl2) and [`animate-sdl2`](https://github.com/jxv/animate-sdl2) for graphics.
 An example can be found [here](https://github.com/jxv/animate-sdl2/tree/master/example).
 
+![Screenshot](https://github.com/jxv/animate-preview/blob/master/propaganda/screenshot.png)
+
 ## Try it!
 
 [OSX binary](https://github.com/jxv/animate-preview/releases/download/0.1.0/animate-preview-osx.zip)
