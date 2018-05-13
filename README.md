@@ -1,5 +1,26 @@
 # Animate Preview
 
+Animate Preview is a program for viewing sprite animation.
+It's intended to be used in sprite development with an image and text editor.
+The viewer automatically reloads the files for speedy turnaround.
+[`animate`](https://github.com/jxv/animate) is the main underlying Haskell library.
+It's recommend to use [`sdl2`](https://github.com/haskell-game/sdl2) and [`animate-sdl2`](https://github.com/jxv/animate-sdl2) for graphics.
+An example can be found [here](https://github.com/jxv/animate-sdl2/tree/master/example).
+
+## Try it!
+
+[OSX binary](https://github.com/jxv/animate-preview/releases/download/0.1.0/animate-preview-osx.zip)
+
+[dino.png](https://github.com/jxv/animate-sdl2/blob/master/example/dino.png)
+
+[dino.yaml](https://github.com/jxv/animate-sdl2/blob/master/example/dino.yaml)
+
+```shell
+animate-preview --target /path/to/dino.yaml --image /path/to/dino.png --watch
+```
+
+[More information about the yaml file](https://github.com/jxv/animate#sprite-information)
+
 ## Usage
 
 ```
@@ -17,6 +38,8 @@ Available options:
 ```
 
 ## Commands
+
+Animate Preview is mostly controlled through the keyboard.
 
 ### General
 
