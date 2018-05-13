@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: c4d0ff1bbcecbfbc048eaaab5b3fec7f52fb4cc7c0e6aa6e6703f5dd36df83c5
+-- hash: 97a9aa8948107d21c298dce29440851ea4b4bae06188f0317a52f4e7706c8ae4
 
 name:           animate-preview
-version:        0.1.1
+version:        0.1.2
 synopsis:       Preview tool for sprite animation
 description:    Preview tool for sprite animation
 category:       Game
@@ -79,6 +79,7 @@ library
       Animate.Preview.SDLRenderer
       Animate.Preview.State
       Animate.Preview.Timer
+      Animate.Preview.Watcher
   other-modules:
       Paths_animate_preview
   default-language: Haskell2010

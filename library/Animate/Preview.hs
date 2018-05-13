@@ -11,7 +11,7 @@ import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
 import Control.Monad.State (MonadState, StateT, evalStateT)
 import Control.Monad (when, forever, void)
-import Control.Concurrent (threadDelay, forkIO, newMVar)
+import Control.Concurrent (threadDelay, forkIO, newMVar, modifyMVar_)
 import Control.Exception.Safe (MonadThrow, MonadCatch)
 import Data.Maybe (fromMaybe)
 import Data.StateVar (get)
@@ -31,6 +31,7 @@ import Animate.Preview.Runner
 import Animate.Preview.Scene
 import Animate.Preview.State
 import Animate.Preview.Timer
+import Animate.Preview.Watcher
 
 data Options = Options
   { target :: String  <?> "File path with sprite information (YAML or JSON)"
@@ -61,6 +62,7 @@ main = do
   resources <- loadResources highDpi' renderer
   loaded <- newMVar Nothing
   current <- newMVar Nothing
+  reloadVal <- newMVar False
 
   winSize <- fmap fromIntegral <$> get (SDL.windowSize window)
   drawSize <- fmap fromIntegral <$> SDL.glGetDrawableSize window
@@ -80,6 +82,7 @@ main = do
         , cLoaded = loaded
         , cFps = fps'
         , cFrameDeltaSeconds = 1.0 / fromIntegral fps'
+        , cReload = reloadVal
         }
 
   when (unHelpful $ watch options) $ do
@@ -95,17 +98,6 @@ main = do
   Font.quit
   SDL.quit
 
-runWatcherAndReloader :: Config -> String -> IO ()
-runWatcherAndReloader cfg filename = void $ forkIO $ withManager $ \mgr -> do
-  -- start a watching job (in the background)
-  void $ watchDir
-    mgr
-    (takeDirectory filename)
-    (\event -> takeFileName (eventPath event) == takeFileName filename)
-    (\_ -> runWatcher cfg reload)
-  -- sleep forever (until interrupted)
-  forever $ threadDelay 1000000
-
 newtype AnimatePreview a = AnimatePreview (ReaderT Config (StateT Vars IO) a)
   deriving (Functor, Applicative, Monad, MonadReader Config, MonadState Vars, MonadIO, MonadThrow, MonadCatch)
 
@@ -120,12 +112,3 @@ instance Renderer AnimatePreview
 instance Scene AnimatePreview
 instance Loader AnimatePreview
 instance Timer AnimatePreview
-
-newtype Watcher a = Watcher (ReaderT Config IO a)
-  deriving (Functor, Applicative, Monad, MonadReader Config, MonadIO, MonadThrow, MonadCatch)
-
-instance Logger Watcher
-instance Loader Watcher
-
-runWatcher :: Config -> Watcher a -> IO a
-runWatcher cfg (Watcher m) = runReaderT m cfg

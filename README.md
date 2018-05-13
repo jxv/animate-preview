@@ -13,7 +13,7 @@ An example can be found [here](https://github.com/jxv/animate-sdl2/tree/master/e
 
 ## Try it!
 
-[OSX binary](https://github.com/jxv/animate-preview/releases/download/0.1.0/animate-preview-osx.zip)
+[OSX binary](https://github.com/jxv/animate-preview/releases/download/0.1.2/animate-preview-osx.zip)
 
 [dino.png](https://github.com/jxv/animate-sdl2/blob/master/example/dino.png)
 
