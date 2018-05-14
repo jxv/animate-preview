@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: aa6b681bb67597fb8d5c0079224ac72fa30795d166ad51aefffbd965f79c8a67
+-- hash: 66509c0866492290da6afd4f35ca54f354a385b5fc5ca509727fd77c329cd2dc
 
 name:           animate-preview
-version:        0.1.2.1
+version:        0.1.2.2
 synopsis:       Preview tool for sprite animation
 description:    Preview tool for sprite animation
 category:       Game
@@ -54,6 +54,7 @@ library
     , safe
     , safe-exceptions
     , sdl2
+    , sdl2-fps
     , sdl2-gfx
     , sdl2-image
     , sdl2-ttf
@@ -78,7 +79,6 @@ library
       Animate.Preview.SDLInput
       Animate.Preview.SDLRenderer
       Animate.Preview.State
-      Animate.Preview.Timer
       Animate.Preview.Watcher
   other-modules:
       Paths_animate_preview

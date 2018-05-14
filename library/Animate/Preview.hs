@@ -7,6 +7,7 @@ module Animate.Preview
 
 import qualified SDL
 import qualified SDL.Font as Font
+import SDL.FPS (FPS)
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
 import Control.Monad.State (MonadState, StateT, evalStateT)
@@ -30,7 +31,6 @@ import Animate.Preview.Resource
 import Animate.Preview.Runner
 import Animate.Preview.Scene
 import Animate.Preview.State
-import Animate.Preview.Timer
 import Animate.Preview.Watcher
 
 data Options = Options
@@ -111,4 +111,4 @@ instance HasInput AnimatePreview
 instance Renderer AnimatePreview
 instance Scene AnimatePreview
 instance Loader AnimatePreview
-instance Timer AnimatePreview
+instance FPS AnimatePreview

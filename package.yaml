@@ -1,5 +1,5 @@
 name: animate-preview
-version: '0.1.2.1'
+version: '0.1.2.2'
 github: jxv/animate-preview
 license: BSD3
 category: Game
@@ -44,6 +44,7 @@ library:
     - safe
     - safe-exceptions
     - sdl2
+    - sdl2-fps
     - sdl2-image
     - sdl2-ttf
     - sdl2-gfx
