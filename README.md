@@ -7,17 +7,15 @@ The viewer automatically reloads the files for speedy turnaround.
 It's recommend to use [`sdl2`](https://github.com/haskell-game/sdl2) and [`animate-sdl2`](https://github.com/jxv/animate-sdl2) for graphics.
 An example can be found [here](https://github.com/jxv/animate-sdl2/tree/master/example).
 
-[Video](https://youtu.be/9DDbeVvkcaE)
+#### [Watch the Video](https://youtu.be/9DDbeVvkcaE)
 
 ![Screenshot](https://github.com/jxv/animate-preview/blob/master/propaganda/screenshot.png)
 
 ## Try it!
 
-[OSX binary](https://github.com/jxv/animate-preview/releases/download/0.1.2/animate-preview-osx.zip)
+Download executables: [OSX](https://github.com/jxv/animate-preview/releases/download/0.1.2/animate-preview-osx.zip) | [Ubuntu linux](https://github.com/jxv/animate-preview/releases/download/0.1.2/animate-preview-ubuntu.zip)
 
-[dino.png](https://github.com/jxv/animate-sdl2/blob/master/example/dino.png)
-
-[dino.yaml](https://github.com/jxv/animate-sdl2/blob/master/example/dino.yaml)
+Download resources: [dino.png](https://github.com/jxv/animate-sdl2/blob/master/example/dino.png), [dino.yaml](https://github.com/jxv/animate-sdl2/blob/master/example/dino.yaml)
 
 ```shell
 animate-preview --target /path/to/dino.yaml --image /path/to/dino.png --watch
