@@ -15,6 +15,8 @@ import SDL.Vect
 import System.IO.Error (catchIOError)
 import Paths_animate_preview (getDataFileName)
 
+import Animate.Preview.Chars
+
 data Resources = Resources
   { rFont :: Font.Font
   , rGlyphMap :: Map.Map Char Glyph
@@ -93,10 +95,14 @@ loadResources highDpi ren = do
   fileName <- getDataFileName "resource/ProggyClean.ttf"
   let glyphSize = if highDpi then 32 else 16
   font <- Font.load fileName glyphSize
+  {-
   putStrLn "Font cache: filtering glyphs"
   availableChars <- filterM (Font.glyphProvided font) [minBound..maxBound]
   putStrLn "Font cache: creating textures"
   glyphs <- mapM (createGlyph highDpi ren font) (' ':availableChars)
+  -}
+  putStrLn "Font caching..."
+  glyphs <- mapM (createGlyph highDpi ren font) filteredChars
   let glyphs' = map (\g -> (gChar g, g)) (catMaybes glyphs)
   return Resources
     { rFont = font
