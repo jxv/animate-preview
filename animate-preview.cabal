@@ -2,10 +2,10 @@
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d281150d9eebb095fef2834614d992a4ba12c50bb239a3bdf134c42c9cedfa6a
+-- hash: aa201f0c9dbeb2140758863090833a644118964bae6977db1aa98f91d4b55dc4
 
 name:           animate-preview
-version:        0.1.2.3
+version:        0.1.2.4
 synopsis:       Preview tool for sprite animation
 description:    Preview tool for sprite animation
 category:       Game

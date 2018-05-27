@@ -4,17 +4,15 @@ import qualified Animate
 import qualified SDL
 import qualified SDL.Primitive as Gfx
 import qualified Data.Map as Map
-import Foreign.C.Types
 import SDL.Vect
 import Control.Monad.Reader (asks)
 import Control.Monad.State (modify)
 import Control.Monad.IO.Class (MonadIO(..))
 import Data.Maybe (fromMaybe)
-import Data.StateVar (($=))
-import Foreign.C.Types (CFloat(..))
+import Foreign.C.Types (CFloat(..), CInt)
 import Data.Text (Text)
 import Data.Text.Conversions (fromText)
-import Data.StateVar (get)
+import Data.StateVar (get, ($=))
 import Data.List (foldl')
 
 import Animate.Preview.Config

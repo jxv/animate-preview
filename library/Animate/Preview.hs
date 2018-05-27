@@ -8,17 +8,15 @@ module Animate.Preview
 import qualified SDL
 import qualified SDL.Font as Font
 import SDL.FPS (FPS)
+import Control.Monad (forM_, when)
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
 import Control.Monad.State (MonadState, StateT, evalStateT)
-import Control.Monad (when, forever, void)
-import Control.Concurrent (threadDelay, forkIO, newMVar, modifyMVar_)
+import Control.Concurrent (newMVar)
 import Control.Exception.Safe (MonadThrow, MonadCatch)
 import Data.Maybe (fromMaybe)
 import Data.StateVar (get)
 import Options.Generic
-import System.FSNotify (withManager, watchDir, eventPath)
-import System.FilePath (takeDirectory, takeFileName)
 
 import Animate.Preview.Config
 import Animate.Preview.Logger
@@ -87,9 +85,7 @@ main = do
 
   when (unHelpful $ watch options) $ do
     runWatcherAndReloader cfg (sTarget settings)
-    case sSpritesheet settings of
-      Nothing -> return ()
-      Just imgPath -> runWatcherAndReloader cfg imgPath
+    forM_ (sSpritesheet settings) (runWatcherAndReloader cfg)
   
   let v = initVars winSize drawSize
   runAnimatePreview cfg v (reload >> mainLoop)

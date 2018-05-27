@@ -4,17 +4,13 @@ import Control.Exception.Safe (MonadThrow, MonadCatch)
 import Control.Monad.IO.Class (MonadIO(..))
 import Control.Monad.Reader (MonadReader, ReaderT, runReaderT)
 import Animate.Preview.Config
-import Control.Monad (when, forever, void)
-import Control.Concurrent (threadDelay, forkIO, newMVar, modifyMVar_)
-import Control.Exception.Safe (MonadThrow, MonadCatch)
-import Data.Maybe (fromMaybe)
-import Data.StateVar (get)
+import Control.Monad (forever, void)
+import Control.Concurrent (threadDelay, forkIO, modifyMVar_)
 import System.FSNotify (withManager, watchDir, eventPath)
 import System.FilePath (takeDirectory, takeFileName)
 
 import Animate.Preview.Loader
 import Animate.Preview.Logger
-import Animate.Preview.Scene
 
 newtype Watcher a = Watcher (ReaderT Config IO a)
   deriving (Functor, Applicative, Monad, MonadReader Config, MonadIO, MonadThrow, MonadCatch)

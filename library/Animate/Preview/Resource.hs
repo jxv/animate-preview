@@ -7,7 +7,6 @@ import qualified Animate
 import qualified SDL.Raw.Video as Raw
 import qualified SDL.Internal.Numbered as Numbered
 import qualified Data.Map as Map
-import Control.Monad (filterM)
 import Data.Text (Text)
 import Data.Maybe (catMaybes)
 import Data.StateVar (($=))

@@ -21,14 +21,16 @@ asSpeedString = \case
 scalarToSpriteScale :: Scalar -> Float
 scalarToSpriteScale = \case
   Scalar'None -> 1
-  Scalar'Down n -> 1 - (0.1 * fromIntegral n)
+  Scalar'Down n -> 1 - (0.05 * fromIntegral n)
   Scalar'Up n -> 1 + (0.1 * fromIntegral n)
 
 asScaleString :: Scalar -> String
 asScaleString = \case
   Scalar'None -> "1x"
-  Scalar'Down n -> "0." ++ show (10 - n) ++ "x"
+  Scalar'Down n -> "0." ++ showDown (100 - (n * 5)) ++ "x"
   Scalar'Up n -> show (n `div` 10 + 1) ++ "." ++ show (mod n 10) ++ "x"
+  where
+    showDown n = (if n < 10 then "0" else "") ++ show n
 
 incrementScalar :: Int -> Scalar -> Scalar
 incrementScalar upper = \case

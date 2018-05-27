@@ -183,7 +183,7 @@ updateScale = do
   let down = onceThenFire (iScaleDown input) || iScaleMouseDown input > 0
   let reset = isPressed (iScaleReset input) || isPressed (iMouseMiddleClick input)
   let increment = replicate (max 1 (iScaleMouseUp input)) (incrementScalar 90)
-  let decrement = replicate (max 1 (iScaleMouseDown input)) (decrementScalar 9)
+  let decrement = replicate (max 1 (iScaleMouseDown input)) (decrementScalar 19)
   let change s
         | reset = Scalar'None
         | up && not down = fapply increment s
